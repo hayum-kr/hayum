@@ -28,7 +28,7 @@
             width: 100%;
             max-width: 650px;
             margin: 0 auto;
-            padding-top: 30mm;
+            padding-top: 25mm;
             padding-bottom: 40mm; 
         }
         
@@ -37,9 +37,12 @@
             text-align: center;
         }
         
+        /* 로고가 본문 텍스트 가로폭과 균형을 이루도록 크기 및 여백 조정 */
         .brand-logo {
-            max-width: 250px; /* 로고 크기 조정 */
-            margin: 0 auto 8px; /* 중앙 정렬 및 여백 */
+            width: 100%;
+            max-width: 520px; /* 본문 텍스트 라인과 조화를 이루는 최적의 가로폭 */
+            height: auto;
+            margin: 0 auto;
             display: block;
         }
         
@@ -72,6 +75,10 @@
             margin: 0 0 10px 0;
         }
         
+        .section-content p:last-child {
+            margin-bottom: 0;
+        }
+        
         .grid-table {
             display: table;
             width: 100%;
@@ -97,6 +104,27 @@
             padding-bottom: 8px;
             font-size: 10pt;
         }
+
+        .history-list {
+            margin-top: 10px;
+        }
+        
+        .history-item {
+            display: flex;
+            margin-bottom: 12px;
+            font-size: 10.5pt;
+        }
+        
+        .history-date {
+            width: 90px;
+            font-weight: bold;
+            color: #8f7e6b;
+            flex-shrink: 0;
+        }
+        
+        .history-text {
+            color: #2a1f16;
+        }
         
         footer {
             border-top: 1px solid #ede5d1;
@@ -116,7 +144,7 @@
 
     <div class="container">
         <header>
-            <img src="hayum_logo.png" alt="주식회사 해윰 로고" class="brand-logo">
+            <img src="logo.png" alt="주식회사 해윰" class="brand-logo">
         </header>
         
         <main>
