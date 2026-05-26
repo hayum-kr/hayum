@@ -20,24 +20,23 @@
             padding: 0;
             font-family: 'Times New Roman', 'Noto Serif KR', 'Malgun Gothic', serif;
             color: #2a1f16;
-            line-height: 1.6;
+            line-height: 1.7;
             background-color: #faf8f5;
-            -webkit-text-size-adjust: none; /* 모바일 기기 임의 폰트 확대 방지 */
+            -webkit-text-size-adjust: none;
         }
         
         .container {
             width: 100%;
             max-width: 650px;
             margin: 0 auto;
-            padding: 25mm 20px 40mm 20px; /* 모바일 좌우 여백 20px 확보 */
+            padding: 25mm 20px 40mm 20px;
         }
         
         header {
-            margin-bottom: 20mm;
+            margin-bottom: 22mm;
             text-align: center;
         }
         
-        /* 로고가 본문 가로폭에 맞춰 부드럽게 줄어들도록 설정 */
         .brand-logo {
             width: 100%;
             max-width: 520px;
@@ -51,7 +50,7 @@
         }
         
         .section {
-            margin-bottom: 12mm;
+            margin-bottom: 14mm;
         }
         
         .section-title {
@@ -59,10 +58,10 @@
             font-weight: 700;
             letter-spacing: 2px;
             color: #5a4838;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             text-transform: uppercase;
             border-bottom: 1px solid #ede5d1;
-            padding-bottom: 5px;
+            padding-bottom: 6px;
         }
         
         .section-content {
@@ -72,14 +71,33 @@
         }
         
         .section-content p {
-            margin: 0 0 10px 0;
+            margin: 0 0 12px 0;
         }
         
         .section-content p:last-child {
             margin-bottom: 0;
         }
+
+        /* 강조 블록 스타일 (투자 원칙 및 세부 사업 부문용) */
+        .business-block {
+            margin-bottom: 14px;
+            padding-left: 12px;
+            border-left: 2px solid #8f7e6b;
+        }
+
+        .business-block-title {
+            font-size: 10.5pt;
+            font-weight: bold;
+            color: #5a4838;
+            margin-bottom: 4px;
+        }
+
+        .business-block-desc {
+            font-size: 10pt;
+            color: #4a3d30;
+            line-height: 1.6;
+        }
         
-        /* 데스크톱 기준 기본 테이블 스타일 */
         .grid-table {
             display: table;
             width: 100%;
@@ -92,7 +110,7 @@
         
         .grid-label {
             display: table-cell;
-            width: 105px; /* 약간 여유 있게 조정 */
+            width: 105px;
             font-weight: bold;
             color: #5a4838;
             padding-bottom: 8px;
@@ -104,7 +122,7 @@
             color: #2a1f16;
             padding-bottom: 8px;
             font-size: 10pt;
-            word-break: keep-all; /* 단어 단위 줄바꿈으로 깔끔하게 처리 */
+            word-break: keep-all;
         }
 
         .history-list {
@@ -137,16 +155,14 @@
             font-size: 10pt;
             font-weight: 700;
             color: #5a4838;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             letter-spacing: 1px;
         }
 
-        /* ==========================================================================
-           📱 모바일 반응형 핵심 스타일 (화면 폭이 500px 이하일 때 작동)
-           ========================================================================== */
+        /* 📱 모바일 반응형 스타일 (화면 폭이 500px 이하일 때 작동) */
         @media screen and (max-width: 500px) {
             .container {
-                padding-top: 15mm; /* 모바일에서는 상단 여백을 살짝 줄임 */
+                padding-top: 15mm;
                 padding-bottom: 25mm;
             }
             
@@ -154,7 +170,6 @@
                 margin-bottom: 15mm;
             }
 
-            /* 테이블 형태를 세로 쌓임 구조(Block)로 변환하여 가독성 확보 */
             .grid-table, .grid-row, .grid-label, .grid-value {
                 display: block;
                 width: 100%;
@@ -166,11 +181,10 @@
             }
 
             .grid-value {
-                padding-bottom: 12px; /* 항목 간 간격 확보 */
+                padding-bottom: 12px;
                 font-size: 10pt;
             }
             
-            /* 연혁 부문 모바일 최적화 */
             .history-item {
                 flex-direction: column;
                 margin-bottom: 15px;
@@ -200,17 +214,29 @@
             </div>
             
             <div class="section">
+                <div class="section-title">Investment Principles</div>
+                <div class="section-content">
+                    <div class="business-block">
+                        <div class="business-block-title">글로벌 자산배분 및 리스크 관리</div>
+                        <div class="business-block-desc">철저한 데이터 분석과 거시경제 흐름에 기반하여, 단기적 투기보다는 장기적인 관점의 자산배분 전략을 취합니다. 시장의 변동성을 통제하고 예측 가능한 복리 성장을 추구합니다.</div>
+                    </div>
+                    <div class="business-block">
+                        <div class="business-block-title">전략적 가치 투자</div>
+                        <div class="business-block-desc">본질적 가치보다 저평가된 자산을 발굴하고 원칙을 고수하는 투자를 진행합니다. 깊은 통찰력과 인내를 바탕으로 견고한 자본의 성장을 리드합니다.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
                 <div class="section-title">Core Business</div>
                 <div class="section-content">
-                    <div class="grid-table">
-                        <div class="grid-row">
-                            <div class="grid-label">주사업 부문</div>
-                            <div class="grid-value">자기자본 기반 기타 금융 투자업 및 자산 배분</div>
-                        </div>
-                        <div class="grid-row">
-                            <div class="grid-label">부사업 부문</div>
-                            <div class="grid-value">도매 및 소매업 / 전자상거래 소매업 및 온라인 인프라 운영</div>
-                        </div>
+                    <div class="business-block">
+                        <div class="business-block-title">기타 금융 투자업 및 자산 운용</div>
+                        <div class="business-block-desc">자기자본을 기반으로 국내외 다각화된 금융 자산 투자와 균형 잡힌 포트폴리오 관리를 수행합니다.</div>
+                    </div>
+                    <div class="business-block">
+                        <div class="business-block-title">디지털 커머스 및 온라인 인프라</div>
+                        <div class="business-block-desc">트렌디하고 실용적인 상품을 발굴하여 주요 온라인 채널에 유통하며, 효율적인 데이터 허브 인프라와 자동화 솔루션을 결합하여 최적의 온라인 비즈니스 환경을 운영합니다.</div>
                     </div>
                 </div>
             </div>
