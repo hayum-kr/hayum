@@ -3,15 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주식회사 해윰 - 공식 홈페이지</title>
+    <title>주식회사 해윰 | HAYUM CO., LTD.</title>
+    <meta name="description" content="주식회사 해윰 - 자산의 영속적 성장을 도모하는 투자법인. Thoughtful Growth, Enduring Brightness.">
     <link rel="icon" type="image/png" href="favicon.png">
 
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+
+    <!-- Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-F1MZ8QJR3N"></script>
     <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-F1MZ8QJR3N');
     </script>
 
@@ -19,139 +26,186 @@
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <img src="hayum_logo.png" alt="주식회사 해윰" class="brand-logo">
-        </header>
-        
-        <main>
-            <div class="section">
-                <div class="section-title">Corporate Philosophy</div>
-                <div class="section-content">
-                    <p>주식회사 해윰은 만물의 근원인 '해(태양)'와 '생각'을 뜻하는 순우리말 고어인 '해윰'을 결합한 명칭입니다.</p>
+    <!-- ===== Top Nav (appears after hero) ===== -->
+    <nav class="nav" id="topnav">
+        <a href="#top" class="nav-brand">HAYUM</a>
+        <div class="nav-links">
+            <a href="#philosophy">Philosophy</a>
+            <a href="#principles">Principles</a>
+            <a href="#business">Business</a>
+            <a href="#history">History</a>
+            <a href="#contact">Contact</a>
+        </div>
+    </nav>
+
+    <!-- ===== Hero ===== -->
+    <header class="hero" id="top">
+        <div class="hero-inner">
+            <span class="hero-eyebrow reveal">EST. 2026 · 주식회사 해윰</span>
+            <h1 class="hero-title reveal">HAYUM</h1>
+            <p class="hero-tagline reveal">Thoughtful Growth, Enduring Brightness</p>
+            <p class="hero-sub reveal">매일 아침 변함없이 떠오르는 태양처럼,<br>자산의 영속적인 성장을 도모합니다.</p>
+        </div>
+        <a href="#philosophy" class="hero-scroll" aria-label="아래로 스크롤">
+            <span></span>
+        </a>
+    </header>
+
+    <main>
+        <!-- ===== Philosophy ===== -->
+        <section class="section" id="philosophy">
+            <div class="section-grid">
+                <div class="section-head reveal">
+                    <span class="section-index">01</span>
+                    <h2 class="section-title">Corporate<br>Philosophy</h2>
+                </div>
+                <div class="section-body reveal">
+                    <p class="lead">주식회사 해윰은 만물의 근원인 '해(태양)'와 '생각'을 뜻하는 순우리말 고어 '해윰'을 결합한 명칭입니다.</p>
                     <p>매일 아침 변함없이 떠오르는 태양처럼 자산의 영속적인 성장을 도모하고, 지혜로운 거시적 안목과 깊은 전략적 사유를 통해 가치를 실현하고자 합니다.</p>
                 </div>
             </div>
+        </section>
 
-
-            <div class="section">
-                <div class="section-title">Notice</div>
-                <div class="section-content">
-                    <div class="history-list">
-                        
-                        <div class="history-item" style="cursor: pointer;" onclick="loadAndOpenModal('./Notice/NT_20260526_01.html')">
-                            <div class="history-date">2026. 06. 01</div>
-                            <div class="history-text" style="text-decoration: underline; font-weight: bold; color: #5a4838;">
-                                주식회사 해윰 공식 웹사이트 오픈 안내의 건
-                            </div>
-                        </div>
-
-                    </div>
+        <!-- ===== Principles ===== -->
+        <section class="section" id="principles">
+            <div class="section-grid">
+                <div class="section-head reveal">
+                    <span class="section-index">02</span>
+                    <h2 class="section-title">Investment<br>Principles</h2>
                 </div>
-            </div>            
-            
-            <div class="section">
-                <div class="section-title">Investment Principles</div>
-                <div class="section-content">
-                    <div class="business-block">
-                        <div class="business-block-title">글로벌 자산배분 및 리스크 관리</div>
-                        <div class="business-block-desc">철저한 데이터 분석과 거시경제 흐름에 기반하여, 단기적 투기보다는 장기적인 관점의 자산배분 전략을 취합니다. 시장의 변동성을 통제하고 예측 가능한 복리 성장을 추구합니다.</div>
+                <div class="section-body">
+                    <div class="card reveal">
+                        <h3 class="card-title">글로벌 자산배분 및 리스크 관리</h3>
+                        <p class="card-desc">철저한 데이터 분석과 거시경제 흐름에 기반하여, 단기적 투기보다는 장기적 관점의 자산배분 전략을 취합니다. 시장의 변동성을 통제하고 예측 가능한 복리 성장을 추구합니다.</p>
                     </div>
-                    <div class="business-block">
-                        <div class="business-block-title">전략적 가치 투자</div>
-                        <div class="business-block-desc">본질적 가치보다 저평가된 자산을 발굴하고 원칙을 고수하는 투자를 진행합니다. 깊은 통찰력과 인내를 바탕으로 견고한 자본의 성장을 리드합니다.</div>
+                    <div class="card reveal">
+                        <h3 class="card-title">전략적 가치 투자</h3>
+                        <p class="card-desc">본질적 가치보다 저평가된 자산을 발굴하고 원칙을 고수하는 투자를 진행합니다. 깊은 통찰력과 인내를 바탕으로 견고한 자본의 성장을 리드합니다.</p>
                     </div>
                 </div>
             </div>
-            
-            <div class="section">
-                <div class="section-title">Core Business</div>
-                <div class="section-content">
-                    <div class="business-block">
-                        <div class="business-block-title">기타 금융 투자업 및 자산 운용</div>
-                        <div class="business-block-desc">자기자본을 기반으로 국내외 다각화된 금융 자산 투자와 균형 잡힌 포트폴리오 관리를 수행합니다.</div>
-                    </div>
-                    <div class="business-block">
-                        <div class="business-block-title">디지털 커머스 및 온라인 인프라</div>
-                        <div class="business-block-desc">트렌디하고 실용적인 상품을 발굴하여 주요 온라인 채널에 유통하며, 효율적인 데이터 허브 인프라와 자동화 솔루션을 결합하여 최적의 온라인 비즈니스 환경을 운영합니다.</div>
-                    </div>
-                </div>
-            </div>
+        </section>
 
-            <div class="section">
-                <div class="section-title">History</div>
-                <div class="section-content">
-                    <div class="history-list">
-                        <div class="history-item">
-                            <div class="history-date">2026. 06. 18</div>
-                            <div class="history-text">주식회사 해윰 사업자등록증 발급</div>
-                        </div>
-                        <div class="history-item">
-                            <div class="history-date">2026. 06. 05</div>
-                            <div class="history-text">주식회사 해윰 법인 설립 등기 접수</div>
-                        </div>                        
-                        <div class="history-item">
-                            <div class="history-date">2026. 05. 26</div>
-                            <div class="history-text">주식회사 해윰 법인 설립 프로세스 개시 및 공식 웹 사이트 구축</div>
-                        </div>
+        <!-- ===== Core Business ===== -->
+        <section class="section" id="business">
+            <div class="section-grid">
+                <div class="section-head reveal">
+                    <span class="section-index">03</span>
+                    <h2 class="section-title">Core<br>Business</h2>
+                </div>
+                <div class="section-body">
+                    <div class="card reveal">
+                        <h3 class="card-title">기타 금융 투자업 및 자산 운용</h3>
+                        <p class="card-desc">자기자본을 기반으로 국내외 다각화된 금융 자산 투자와 균형 잡힌 포트폴리오 관리를 수행합니다.</p>
+                    </div>
+                    <div class="card reveal">
+                        <h3 class="card-title">디지털 커머스 및 온라인 인프라</h3>
+                        <p class="card-desc">트렌디하고 실용적인 상품을 발굴하여 주요 온라인 채널에 유통하며, 효율적인 데이터 허브 인프라와 자동화 솔루션을 결합하여 최적의 온라인 비즈니스 환경을 운영합니다.</p>
                     </div>
                 </div>
             </div>
+        </section>
 
-
-        </main>
-        
-        <footer>
-            <div class="info-title">Corporate Information</div>
-            <div class="grid-table">
-                <div class="grid-row">
-                    <div class="grid-label">상호명</div>
-                    <div class="grid-value">주식회사 해윰 (HAYUM CO., LTD.)</div>
+        <!-- ===== Notice ===== -->
+        <section class="section" id="notice">
+            <div class="section-grid">
+                <div class="section-head reveal">
+                    <span class="section-index">04</span>
+                    <h2 class="section-title">Notice</h2>
                 </div>
-                <div class="grid-row">
-                    <div class="grid-label">사업자 번호</div>
-                    <div class="grid-value">682-87-03931</div>
-                </div>                
-                <div class="grid-row">
-                    <div class="grid-label">본점 소재지</div>
-                    <div class="grid-value">경기도 용인시 기흥구 예현로35번길 21, 102동 1103호 (서천동, 예현마을현대홈타운)</div>
-                </div>
-                <div class="grid-row">
-                    <div class="grid-label">대표 전화</div>
-                    <div class="grid-value">031-202-0954</div>
-                </div>
-                <div class="grid-row">
-                    <div class="grid-label">대표 이메일</div>
-                    <div class="grid-value">hayum.kr@gmail.com</div>
+                <div class="section-body reveal">
+                    <ul class="notice-list">
+                        <li class="notice-item" onclick="loadAndOpenModal('./Notice/NT_20260526_01.html')">
+                            <span class="notice-date">2026. 06. 01</span>
+                            <span class="notice-text">주식회사 해윰 공식 웹사이트 오픈 안내의 건</span>
+                            <span class="notice-arrow">→</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
-        </footer>
-    </div>
+        </section>
 
+        <!-- ===== History ===== -->
+        <section class="section" id="history">
+            <div class="section-grid">
+                <div class="section-head reveal">
+                    <span class="section-index">05</span>
+                    <h2 class="section-title">History</h2>
+                </div>
+                <div class="section-body reveal">
+                    <ol class="timeline">
+                        <li class="timeline-item">
+                            <span class="timeline-date">2026. 06. 18</span>
+                            <span class="timeline-text">주식회사 해윰 사업자등록증 발급</span>
+                        </li>
+                        <li class="timeline-item">
+                            <span class="timeline-date">2026. 06. 05</span>
+                            <span class="timeline-text">주식회사 해윰 법인 설립 등기 접수</span>
+                        </li>
+                        <li class="timeline-item">
+                            <span class="timeline-date">2026. 05. 26</span>
+                            <span class="timeline-text">법인 설립 프로세스 개시 및 공식 웹사이트 구축</span>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== Footer / Contact ===== -->
+    <footer id="contact">
+        <div class="footer-inner">
+            <div class="footer-brand reveal">
+                <span class="footer-logo">HAYUM</span>
+                <p class="footer-tagline">Thoughtful Growth,<br>Enduring Brightness</p>
+            </div>
+            <div class="footer-info reveal">
+                <div class="info-row">
+                    <span class="info-label">상호명</span>
+                    <span class="info-value">주식회사 해윰 (HAYUM CO., LTD.)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">사업자 번호</span>
+                    <span class="info-value">682-87-03931</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">본점 소재지</span>
+                    <span class="info-value">경기도 용인시 기흥구 예현로35번길 21</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">대표 전화</span>
+                    <span class="info-value"><a href="tel:031-202-0954">031-202-0954</a></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">대표 이메일</span>
+                    <span class="info-value"><a href="mailto:hayum.kr@gmail.com">hayum.kr@gmail.com</a></span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copy">© 2026 HAYUM CO., LTD. All rights reserved.</div>
+    </footer>
+
+    <!-- ===== Notice Modal ===== -->
     <div id="globalModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <span class="modal-title">공지사항</span>
-                <button class="modal-close-btn" onclick="closeModal()">&times;</button>
+                <span class="modal-title">NOTICE</span>
+                <button class="modal-close-btn" onclick="closeModal()" aria-label="닫기">&times;</button>
             </div>
-            <div class="modal-body" id="modal-dynamic-body">
-                </div>
+            <div class="modal-body" id="modal-dynamic-body"></div>
         </div>
     </div>
 
     <script>
+        // ===== Notice modal =====
         function loadAndOpenModal(fileName) {
-            // 외부 html 파일을 원격으로 읽어옵니다.
             fetch(fileName)
                 .then(response => {
                     if (!response.ok) throw new Error('파일을 찾을 수 없습니다.');
                     return response.text();
                 })
                 .then(htmlContent => {
-                    // 읽어온 글 알맹이를 팝업창 빈 공간에 주입합니다.
                     document.getElementById('modal-dynamic-body').innerHTML = htmlContent;
-                    
-                    // 팝업창을 부드럽게 켭니다.
                     document.getElementById('globalModal').classList.add('active');
                     document.body.style.overflow = 'hidden';
                 })
@@ -160,18 +214,35 @@
                     alert('공지사항을 불러오는 중 오류가 발생했습니다.');
                 });
         }
-
         function closeModal() {
             document.getElementById('globalModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
+            document.body.style.overflow = '';
         }
+        window.addEventListener('click', function(event) {
+            if (event.target === document.getElementById('globalModal')) closeModal();
+        });
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('globalModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
+        // ===== Scroll reveal =====
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in');
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+        // ===== Nav show after hero =====
+        const nav = document.getElementById('topnav');
+        const heroSentinel = document.querySelector('.hero');
+        const navIo = new IntersectionObserver((entries) => {
+            nav.classList.toggle('visible', !entries[0].isIntersecting);
+        }, { threshold: 0, rootMargin: '-80px 0px 0px 0px' });
+        navIo.observe(heroSentinel);
     </script>
 
 </body>

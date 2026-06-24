@@ -35,3 +35,7 @@ logs/
 temp/
 tmp/
 *.tmp
+
+# Local backups
+*_backup.html
+*_backup.css
