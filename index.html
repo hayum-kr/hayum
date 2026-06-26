@@ -34,7 +34,6 @@
             <a href="#principles">Principles</a>
             <a href="#business">Business</a>
             <a href="#history">History</a>
-            <a href="#dividend">Dividend</a>
             <a href="#contact">Contact</a>
         </div>
     </nav>
@@ -155,35 +154,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- ===== Dividend ===== -->
-        <section class="section" id="dividend">
-            <div class="section-grid">
-                <div class="section-head reveal">
-                    <span class="section-index">06</span>
-                    <h2 class="section-title">Dividend<br>Record</h2>
-                </div>
-                <div class="section-body reveal">
-                    <div class="dividend-summary">
-                        <span class="dividend-summary-label">누적 배당금</span>
-                        <span class="dividend-summary-value" id="dividend-total">0 원</span>
-                    </div>
-                    <table class="dividend-table">
-                        <thead>
-                            <tr>
-                                <th>회차</th>
-                                <th>지급일</th>
-                                <th class="num">배당금</th>
-                                <th class="num">누적 배당금</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dividend-body">
-                            <!-- 내용은 아래 스크립트의 DIVIDENDS 데이터로 자동 생성됩니다. -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
     </main>
 
     <!-- ===== Footer / Contact ===== -->
@@ -198,18 +168,22 @@
                     <span class="info-label">상호명</span>
                     <span class="info-value">주식회사 해윰 (HAYUM CO., LTD.)</span>
                 </div>
+                <!--
                 <div class="info-row">
                     <span class="info-label">사업자 번호</span>
                     <span class="info-value">682-87-03931</span>
                 </div>
+                -->
                 <div class="info-row">
                     <span class="info-label">본점 소재지</span>
                     <span class="info-value">경기도 용인시 기흥구 예현로35번길 21</span>
                 </div>
+                <!--
                 <div class="info-row">
                     <span class="info-label">대표 전화</span>
                     <span class="info-value"><a href="tel:031-202-0954">031-202-0954</a></span>
                 </div>
+                -->
                 <div class="info-row">
                     <span class="info-label">대표 이메일</span>
                     <span class="info-value"><a href="mailto:hayum.kr@gmail.com">hayum.kr@gmail.com</a></span>
@@ -258,41 +232,6 @@
         window.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeModal();
         });
-
-        // ===== Dividend record =====
-        // 배당을 받을 때마다 아래 목록에 한 줄씩 추가하세요. (순서·누적은 자동 계산)
-        //   { round: 회차(숫자), date: '지급일', amount: 배당금(숫자, 콤마 없이) }
-        const DIVIDENDS = [
-             //{ round: 1, date: '2026. 07. 01', amount: 1000000 },
-        ];
-
-        (function renderDividends() {
-            const won = n => n.toLocaleString('ko-KR') + ' 원';
-            const body = document.getElementById('dividend-body');
-            const totalEl = document.getElementById('dividend-total');
-            if (!body || !totalEl) return;
-
-            const sorted = [...DIVIDENDS].sort((a, b) => a.round - b.round);
-            let cumulative = 0;
-            const rows = sorted.map(d => {
-                cumulative += d.amount;
-                return { ...d, cumulative };
-            });
-            totalEl.textContent = won(cumulative);
-
-            if (rows.length === 0) {
-                body.innerHTML = '<tr class="dividend-empty"><td colspan="4">아직 배당 내역이 없습니다.</td></tr>';
-                return;
-            }
-            // 최근 회차가 위로 오도록 역순 출력
-            body.innerHTML = rows.slice().reverse().map(d => `
-                <tr>
-                    <td>${d.round}</td>
-                    <td>${d.date}</td>
-                    <td class="num">${won(d.amount)}</td>
-                    <td class="num">${won(d.cumulative)}</td>
-                </tr>`).join('');
-        })();
 
         // ===== Scroll reveal =====
         const io = new IntersectionObserver((entries) => {

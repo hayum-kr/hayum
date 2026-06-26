@@ -8,6 +8,9 @@ set "MSG=%~1"
 if "%MSG%"=="" set /p MSG=Commit message (Enter=auto):
 if "%MSG%"=="" set "MSG=update %DATE% %TIME%"
 
+echo [git] 0/4 clean Google Drive desktop.ini inside .git
+for /r ".git" %%f in (desktop.ini) do @(attrib -s -h "%%f" >nul 2>&1 & del /f /q "%%f" >nul 2>&1)
+
 echo [git] 1/4 pull (rebase, autostash) - get remote changes first
 git pull --rebase --autostash || goto :error
 

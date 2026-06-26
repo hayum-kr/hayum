@@ -310,63 +310,6 @@ main { display: block; }
 }
 .timeline-text { color: var(--ink-soft); }
 
-/* ===== Dividend ===== */
-.dividend-summary {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px 18px;
-    padding: 22px 24px;
-    margin-bottom: 28px;
-    border: 1px solid var(--line);
-    background: var(--bg-soft);
-}
-.dividend-summary-label {
-    font-size: 13px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--muted);
-}
-.dividend-summary-value {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(28px, 4vw, 40px);
-    font-weight: 600;
-    color: var(--accent);
-    line-height: 1;
-}
-.dividend-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-.dividend-table th,
-.dividend-table td {
-    padding: 14px 8px;
-    text-align: left;
-    border-bottom: 1px solid var(--line);
-}
-.dividend-table thead th {
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: var(--muted);
-}
-.dividend-table tbody td { color: var(--ink-soft); }
-.dividend-table .num {
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-}
-.dividend-table tbody td:first-child {
-    color: var(--accent);
-    font-weight: 600;
-}
-.dividend-table .dividend-empty td {
-    text-align: center;
-    color: var(--muted);
-    padding: 28px 8px;
-}
-
 /* ===== Footer ===== */
 footer {
     background: #16130f;
