@@ -126,6 +126,25 @@
                             <span class="notice-arrow">→</span>
                         </li>
                     </ul>
+
+                    <!-- Dividend live panel -->
+                    <div class="dividend" id="dividend" aria-live="off">
+                        <div class="dividend-head">
+                            <span class="dividend-title">배당 현황</span>
+                            <span class="dividend-asof" id="div-asof">불러오는 중…</span>
+                        </div>
+                        <div class="dividend-grid">
+                            <div class="dividend-cell">
+                                <span class="dividend-label">실배당 (누적)</span>
+                                <span class="dividend-value"><span id="div-actual">-</span><em>원</em></span>
+                            </div>
+                            <div class="dividend-cell">
+                                <span class="dividend-label">예상배당 (누적)</span>
+                                <span class="dividend-value"><span id="div-expected">-</span><em>원</em></span>
+                            </div>
+                        </div>
+                        <p class="dividend-note" id="div-note"></p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -237,6 +256,82 @@
         window.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeModal();
         });
+
+        // ===== Dividend (live from Google Sheet) =====
+        (function () {
+            const SHEET_ID = '15JOMe2aw_4OFUDklv3xyUnRJqbZlkcnOgkJUTh_ETzc';
+            const SHEET_NAME = 'ISA-일배당';
+            const URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+                '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(SHEET_NAME);
+            const $ = id => document.getElementById(id);
+
+            function parseCSV(text) {
+                const rows = []; let row = [], cur = '', q = false;
+                for (let i = 0; i < text.length; i++) {
+                    const c = text[i];
+                    if (q) {
+                        if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+                        else cur += c;
+                    } else if (c === '"') q = true;
+                    else if (c === ',') { row.push(cur); cur = ''; }
+                    else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+                    else if (c !== '\r') cur += c;
+                }
+                if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+                return rows;
+            }
+            const num = s => parseFloat(String(s || '').replace(/,/g, '')) || 0;
+            const ymd = s => { const m = String(s).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/); return m ? Date.UTC(+m[1], m[2] - 1, +m[3]) : NaN; };
+            const fmt = (n, d) => n.toLocaleString('ko-KR', { minimumFractionDigits: d, maximumFractionDigits: d });
+            const DAY = 86400000, KST = 9 * 3600000;
+
+            fetch(URL, { cache: 'no-store' })
+                .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+                .then(text => {
+                    const rows = parseCSV(text);
+                    const head = rows[0].map(h => h.replace(/\s+/g, ''));
+                    const cDate = head.indexOf('일자');
+                    const cDaily = head.lastIndexOf('일배당');      // 포트폴리오 일배당
+                    const cActual = head.indexOf('누적실배당');
+                    if (cDate < 0 || cDaily < 0 || cActual < 0) throw new Error('컬럼을 찾을 수 없습니다.');
+
+                    const data = rows.slice(1)
+                        .map(r => ({ t: ymd(r[cDate]), daily: num(r[cDaily]), actual: num(r[cActual]) }))
+                        .filter(d => !isNaN(d.t))
+                        .sort((a, b) => a.t - b.t);
+                    if (!data.length) throw new Error('데이터가 없습니다.');
+
+                    // 오늘(KST)의 자정 기준 UTC 타임스탬프
+                    const kstDayStart = () => { const n = Date.now() + KST; return n - (n % DAY); };
+
+                    function tick() {
+                        const todayStart = kstDayStart();
+                        const frac = ((Date.now() + KST) - todayStart) / DAY;
+                        let expected = 0, actual = 0, today = null;
+                        for (const d of data) {
+                            if (d.t < todayStart) { expected += d.daily; actual = d.actual; }
+                            else if (d.t === todayStart) { today = d; actual = d.actual; }
+                        }
+                        if (today) expected += today.daily * frac;
+                        $('div-expected').textContent = fmt(expected, 4);
+                        $('div-actual').textContent = fmt(actual, 0);
+                        if (today) {
+                            const perSec = today.daily / 86400;
+                            $('div-note').textContent = '오늘 예상 일배당 ' + fmt(today.daily, 0) + '원 · 초당 약 ' + fmt(perSec, 5) + '원씩 증가';
+                        } else {
+                            $('div-note').textContent = '';
+                        }
+                        const k = new Date(Date.now() + KST);
+                        $('div-asof').textContent = k.getUTCFullYear() + '. ' + String(k.getUTCMonth() + 1).padStart(2, '0') + '. ' + String(k.getUTCDate()).padStart(2, '0') + ' 기준';
+                    }
+                    tick();
+                    setInterval(tick, 1000);
+                })
+                .catch(err => {
+                    console.error('배당 데이터 오류:', err);
+                    $('div-asof').textContent = '데이터를 불러오지 못했습니다';
+                });
+        })();
 
         // ===== Scroll reveal =====
         const io = new IntersectionObserver((entries) => {
