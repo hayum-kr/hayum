@@ -277,7 +277,6 @@ main { display: block; }
 
 /* ===== Dividend live panel ===== */
 .dividend {
-    margin-top: 28px;
     padding: 26px 28px;
     background: var(--bg-soft);
     border: 1px solid var(--line);
