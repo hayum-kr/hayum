@@ -477,7 +477,7 @@
                     $('dm-chart-msg').hidden = true;
                     charts.splice(0).forEach(ch => ch.destroy());
 
-                    const ACCENT = '#8a6a3f', ACCENT_DK = '#6b4f2e', INK = '#16130f', MUTED = '#9b938a', LINE = '#e8e4dd';
+                    const ACCENT = '#8a6a3f', ACCENT_DK = '#6b4f2e', INK = '#16130f', INK_SOFT = '#5b554d', LINE = '#e8e4dd';
                     const todayStart = kstDayStart();
                     let todayIdx = -1;
                     data.forEach((d, i) => { if (d.t <= todayStart) todayIdx = i; });
@@ -493,13 +493,16 @@
                         animation: false,
                         interaction: { mode: 'index', intersect: false },
                         plugins: {
-                            legend: { display: legend, labels: { boxWidth: 12, color: MUTED } },
-                            tooltip: { callbacks: { label: c => ' ' + c.dataset.label + ': ' + fmt(c.parsed.y, 0) + '원' } }
+                            legend: { display: legend, labels: { boxWidth: 14, color: INK_SOFT, font: { size: 15 } } },
+                            tooltip: {
+                                titleFont: { size: 15 }, bodyFont: { size: 15 }, padding: 10,
+                                callbacks: { label: c => ' ' + c.dataset.label + ': ' + fmt(c.parsed.y, 0) + '원' }
+                            }
                         },
                         scales: {
-                            x: { ticks: { maxTicksLimit: 5, maxRotation: 0, color: MUTED }, grid: { display: false } },
+                            x: { ticks: { maxTicksLimit: 4, maxRotation: 0, color: INK_SOFT, font: { size: 14 } }, grid: { display: false } },
                             // y축 폭을 고정해서 두 차트의 가로 축이 서로 맞도록 함
-                            y: { beginAtZero: true, ticks: { maxTicksLimit: 5, color: MUTED, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE }, afterFit: s => { s.width = 58; } }
+                            y: { beginAtZero: true, ticks: { maxTicksLimit: 5, color: INK_SOFT, font: { size: 14 }, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE }, afterFit: s => { s.width = 70; } }
                         }
                     });
 

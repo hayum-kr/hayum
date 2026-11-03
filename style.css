@@ -333,32 +333,45 @@ main { display: block; }
 /* Dividend detail modal */
 .dividend-modal { max-width: 640px; overscroll-behavior: contain; }
 .dividend-modal:focus { outline: none; }
-.dm-asof { margin: 0 0 16px; font-size: 12.5px; color: var(--muted); }
+/* 상세 창은 글자를 크게 (가독성) */
+.dividend-modal .modal-title { font-size: 14px; }
+.dividend-modal .modal-close-btn { font-size: 34px; padding: 0 4px; }
+.dm-asof { margin: 0 0 16px; font-size: 15px; color: var(--muted); }
 .dm-live {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-    padding: 18px;
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 6px 20px;
     background: var(--bg-soft);
     border: 1px solid var(--line);
 }
-.dm-live .dividend-value { font-size: clamp(18px, 3.4vw, 24px); }
-.dm-persec { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
-.dm-sub { margin: 26px 0 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; color: var(--ink); }
+.dm-live .dividend-cell {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
+}
+.dm-live .dividend-cell:first-child { border-top: none; }
+.dm-live .dividend-label { font-size: 16px; }
+.dm-live .dividend-value { font-size: clamp(26px, 6.4vw, 32px); }
+.dm-persec { margin: 12px 0 0; font-size: 15px; color: var(--muted); }
+.dm-sub { margin: 30px 0 10px; font-size: 18px; font-weight: 700; letter-spacing: 0.2px; color: var(--ink); }
 .dm-info { margin: 0; }
 .dm-row {
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 0;
+    padding: 13px 0;
     border-top: 1px solid var(--line);
-    font-size: 14px;
+    font-size: 17px;
 }
 .dm-row:first-child { border-top: none; }
 .dm-row dt { color: var(--ink-soft); }
 .dm-row dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
-.dm-chart { position: relative; height: 220px; }
-.dm-foot { margin: 22px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+.dm-chart { position: relative; height: 250px; }
+.dm-foot { margin: 24px 0 0; font-size: 14.5px; color: var(--muted); line-height: 1.8; }
 .dm-foot[hidden] { display: none; }
 @media (max-width: 720px) {
     #dividendModal { padding: 0; align-items: flex-end; }
@@ -368,8 +381,7 @@ main { display: block; }
         border-radius: 16px 16px 0 0;
         padding: 22px 18px 28px;
     }
-    .dm-live { grid-template-columns: 1fr; gap: 12px; }
-    .dm-live .dividend-cell { flex-direction: row; justify-content: space-between; align-items: baseline; }
+    .dm-live { padding: 4px 16px; }
 }
 @media (max-width: 720px) {
     /* 헤더: 제목 + 새로고침 한 줄, 기준시각은 아래 줄 */
