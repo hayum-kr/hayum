@@ -22,7 +22,7 @@
     gtag('config', 'G-F1MZ8QJR3N');
     </script>
 
-    <link rel="stylesheet" href="style.css?v=20261104">
+    <link rel="stylesheet" href="style.css?v=20261104b">
 </head>
 <body>
 
@@ -254,6 +254,33 @@
             </div>
             <p class="dm-asof" id="dm-asof"></p>
 
+            <h4 class="dm-sub dm-sub-first">누적 배당 목표</h4>
+            <div class="dm-goal" id="dm-goal">
+                <div class="dm-goal-ring">
+                    <svg viewBox="0 0 200 200" role="img" aria-label="목표 달성률">
+                        <defs>
+                            <linearGradient id="dmGoalGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#b8935a"/>
+                                <stop offset="1" stop-color="#6b4f2e"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="dm-goal-track" cx="100" cy="100" r="86"/>
+                        <circle class="dm-goal-bar" id="dm-goal-bar" cx="100" cy="100" r="86" stroke="url(#dmGoalGrad)"/>
+                    </svg>
+                    <div class="dm-goal-center">
+                        <span class="dm-goal-pct" id="dm-goal-pct">0%</span>
+                        <span class="dm-goal-sub">목표 달성률</span>
+                    </div>
+                </div>
+                <div class="dm-goal-text">
+                    <div class="dm-goal-line"><span>목표 금액</span><b id="dm-goal-target">-</b></div>
+                    <div class="dm-goal-line"><span>현재 (예상 누적)</span><b id="dm-goal-now">-</b></div>
+                    <div class="dm-goal-line"><span>남은 금액</span><b id="dm-goal-remain">-</b></div>
+                    <div class="dm-goal-line"><span>달성 예상일</span><b id="dm-goal-eta">-</b></div>
+                </div>
+            </div>
+
+            <h4 class="dm-sub">실시간 배당</h4>
             <div class="dm-live">
                 <div class="dividend-cell">
                     <span class="dividend-label">오늘 예상배당</span>
@@ -290,6 +317,7 @@
             <p class="dm-foot">
                 일배당은 보유 수량 × 1주당 배당으로 계산한 하루치 예상 배당입니다.
                 초 단위로 늘어나는 숫자는 하루치를 24시간에 균등하게 나눈 환산값이며, 실제 입금은 입금일에 실배당으로 반영됩니다.
+                목표 달성률과 달성 예상일은 예상 누적배당 기준이며, 시트의 예상 일배당을 그대로 따릅니다.
                 차트의 점선·옅은 막대는 미래 예상치이고, 모든 값은 예상이므로 실제와 다를 수 있습니다.
             </p>
         </div>
@@ -358,6 +386,9 @@
             let data = null;                    // 시트에서 읽은 일자별 데이터
             let lastLoaded = null;
             let loading = false;
+            const GOAL = 10000;                 // 목표 누적 배당금 (원)
+            const RING_C = 2 * Math.PI * 86;    // 목표 링 둘레 (r=86)
+            let goalHit = null;                 // 시트상 목표 달성 예정일 행
             const charts = [];
             const modal = $('dividendModal');
             const isModalOpen = () => modal.classList.contains('active');
@@ -443,6 +474,27 @@
                     + (lastLoaded ? ' · 시트 갱신 ' + hms(lastLoaded) : '');
                 setText('div-asof', asof);
                 setText('dm-asof', asof);
+
+                // ----- 목표 달성 그래픽 -----
+                const p = Math.min(c.expected / GOAL, 1);
+                const bar = $('dm-goal-bar');
+                bar.style.strokeDasharray = RING_C.toFixed(2);
+                bar.style.strokeDashoffset = (RING_C * (1 - p)).toFixed(2);
+                setText('dm-goal-pct', fmt(p * 100, 2) + '%');
+                setText('dm-goal-target', fmt(GOAL, 0) + '원');
+                setText('dm-goal-now', fmt(c.expected, 2) + '원');
+                const done = c.expected >= GOAL;
+                setText('dm-goal-remain', done ? '달성 완료' : fmt(GOAL - c.expected, 2) + '원');
+                $('dm-goal').classList.toggle('done', done);
+                let eta = '시트 기간 내 미달성';
+                if (done) eta = '달성 완료';
+                else if (goalHit) {
+                    const k2 = new Date(goalHit.t);
+                    const days = Math.round((goalHit.t - kstDayStart()) / DAY);
+                    eta = k2.getUTCFullYear() + '. ' + String(k2.getUTCMonth() + 1).padStart(2, '0') + '. ' + String(k2.getUTCDate()).padStart(2, '0')
+                        + (days > 0 ? ' (D-' + days + ')' : ' (오늘)');
+                }
+                setText('dm-goal-eta', eta);
             }
 
             // 상세 창의 "배당 정보" 채우기 (오늘 행 기준, 없으면 마지막 지난 행)
@@ -457,6 +509,10 @@
                 setText('dm-week', row ? won(row.week) : '-');
                 setText('dm-month', row ? won(row.month) : '-');
                 setText('dm-year', row ? won(row.year) : '-');
+
+                // 시트의 일배당 누적이 처음 목표에 도달하는 날
+                let s = 0; goalHit = null;
+                for (const d of data) { s += d.daily; if (s >= GOAL) { goalHit = d; break; } }
             }
 
             // ----- 차트 (Chart.js, 상세 창을 열 때 지연 로드) -----
