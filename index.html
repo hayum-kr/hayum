@@ -139,7 +139,7 @@
                 </div>
                 <div class="section-body reveal">
                     <!-- Dividend live panel -->
-                    <div class="dividend" id="dividend" aria-live="off">
+                    <div class="dividend" id="dividend" role="button" tabindex="0" aria-label="배당 현황 상세 보기">
                         <div class="dividend-head">
                             <span class="dividend-title">배당 현황</span>
                             <span class="dividend-asof" id="div-asof">불러오는 중…</span>
@@ -160,6 +160,7 @@
                             </div>
                         </div>
                         <p class="dividend-note" id="div-note"></p>
+                        <p class="dividend-more">차트·상세 보기 →</p>
                     </div>
                 </div>
             </div>
@@ -244,6 +245,56 @@
         </div>
     </div>
 
+    <!-- ===== Dividend Modal ===== -->
+    <div id="dividendModal" class="modal-overlay" aria-hidden="true">
+        <div class="modal-box dividend-modal" role="dialog" aria-modal="true" aria-label="배당 현황 상세">
+            <div class="modal-header">
+                <span class="modal-title">DIVIDEND</span>
+                <button type="button" class="modal-close-btn" id="dm-close" aria-label="닫기">&times;</button>
+            </div>
+            <p class="dm-asof" id="dm-asof"></p>
+
+            <div class="dm-live">
+                <div class="dividend-cell">
+                    <span class="dividend-label">오늘 예상배당</span>
+                    <span class="dividend-value"><span id="dm-today">-</span><em>원</em></span>
+                </div>
+                <div class="dividend-cell">
+                    <span class="dividend-label">예상배당 (누적)</span>
+                    <span class="dividend-value"><span id="dm-expected">-</span><em>원</em></span>
+                </div>
+                <div class="dividend-cell">
+                    <span class="dividend-label">실배당 (누적)</span>
+                    <span class="dividend-value"><span id="dm-actual">-</span><em>원</em></span>
+                </div>
+            </div>
+            <p class="dm-persec" id="dm-persec"></p>
+
+            <h4 class="dm-sub">배당 정보</h4>
+            <dl class="dm-info">
+                <div class="dm-row"><dt>보유 수량 (합계)</dt><dd id="dm-qty">-</dd></div>
+                <div class="dm-row"><dt>오늘 예상 일배당</dt><dd id="dm-daily">-</dd></div>
+                <div class="dm-row"><dt>시간당 (환산)</dt><dd id="dm-hour">-</dd></div>
+                <div class="dm-row"><dt>주간 (현재 수량 유지 시)</dt><dd id="dm-week">-</dd></div>
+                <div class="dm-row"><dt>월간 (현재 수량 유지 시)</dt><dd id="dm-month">-</dd></div>
+                <div class="dm-row"><dt>연간 (현재 수량 유지 시)</dt><dd id="dm-year">-</dd></div>
+            </dl>
+
+            <h4 class="dm-sub">누적 배당 추이</h4>
+            <div class="dm-chart"><canvas id="dm-chart-cum" aria-label="누적 배당 추이 차트" role="img"></canvas></div>
+
+            <h4 class="dm-sub">일별 예상 배당</h4>
+            <div class="dm-chart"><canvas id="dm-chart-day" aria-label="일별 예상 배당 차트" role="img"></canvas></div>
+            <p class="dm-foot" id="dm-chart-msg" hidden>차트를 불러오지 못했습니다.</p>
+
+            <p class="dm-foot">
+                일배당은 보유 수량 × 1주당 배당으로 계산한 하루치 예상 배당입니다.
+                초 단위로 늘어나는 숫자는 하루치를 24시간에 균등하게 나눈 환산값이며, 실제 입금은 입금일에 실배당으로 반영됩니다.
+                차트의 점선·옅은 막대는 미래 예상치이고, 모든 값은 예상이므로 실제와 다를 수 있습니다.
+            </p>
+        </div>
+    </div>
+
     <script>
         // ===== Notice modal =====
         function loadAndOpenModal(fileName) {
@@ -279,7 +330,9 @@
             const SHEET_NAME = 'ISA-일배당';
             const URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
                 '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(SHEET_NAME);
+            const CHART_JS = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
             const $ = id => document.getElementById(id);
+            const setText = (id, v) => { $(id).textContent = v; };
 
             function parseCSV(text) {
                 const rows = []; let row = [], cur = '', q = false;
@@ -305,6 +358,9 @@
             let data = null;                    // 시트에서 읽은 일자별 데이터
             let lastLoaded = null;
             let loading = false;
+            const charts = [];
+            const modal = $('dividendModal');
+            const isModalOpen = () => modal.classList.contains('active');
 
             // 오늘(KST)의 자정 기준 UTC 타임스탬프
             const kstDayStart = () => { const n = Date.now() + KST; return n - (n % DAY); };
@@ -317,8 +373,15 @@
                 const cDaily = head.lastIndexOf('일배당');      // 포트폴리오 일배당
                 const cActual = head.indexOf('누적실배당');
                 if (cDate < 0 || cDaily < 0 || cActual < 0) throw new Error('컬럼을 찾을 수 없습니다.');
+                // 상세 정보용 컬럼 (없어도 동작)
+                const cQty = head.indexOf('포트폴수량'), cWeek = head.indexOf('주배당'),
+                      cMonth = head.indexOf('월배당'), cYear = head.indexOf('년배당');
+                const cell = (r, c) => c < 0 ? 0 : num(r[c]);
                 const d = rows.slice(1)
-                    .map(r => ({ t: ymd(r[cDate]), daily: num(r[cDaily]), actual: num(r[cActual]) }))
+                    .map(r => ({
+                        t: ymd(r[cDate]), daily: num(r[cDaily]), actual: num(r[cActual]),
+                        qty: cell(r, cQty), week: cell(r, cWeek), month: cell(r, cMonth), year: cell(r, cYear)
+                    }))
                     .filter(x => !isNaN(x.t))
                     .sort((a, b) => a.t - b.t);
                 if (!d.length) throw new Error('데이터가 없습니다.');
@@ -332,42 +395,183 @@
                 btn.disabled = true; btn.classList.add('loading');
                 fetch(URL, { cache: 'no-store' })
                     .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-                    .then(text => { data = parseSheet(text); lastLoaded = new Date(); tick(); })
+                    .then(text => {
+                        data = parseSheet(text);
+                        lastLoaded = new Date();
+                        fillInfo();
+                        tick();
+                        if (isModalOpen()) renderCharts();
+                    })
                     .catch(err => {
                         console.error('배당 데이터 오류:', err);
-                        if (!data) $('div-asof').textContent = '데이터를 불러오지 못했습니다';
-                        else $('div-note').textContent += ' · 갱신 실패(이전 데이터 표시 중)';
+                        if (!data) setText('div-asof', '데이터를 불러오지 못했습니다');
+                        else setText('div-note', $('div-note').textContent + ' · 갱신 실패(이전 데이터 표시 중)');
                     })
                     .finally(() => { loading = false; btn.disabled = false; btn.classList.remove('loading'); });
             }
 
-            function tick() {
-                if (!data) return;
-                {
-                        const todayStart = kstDayStart();
-                        const frac = ((Date.now() + KST) - todayStart) / DAY;
-                        let expected = 0, actual = 0, today = null;
-                        for (const d of data) {
-                            if (d.t < todayStart) { expected += d.daily; actual = d.actual; }
-                            else if (d.t === todayStart) { today = d; actual = d.actual; }
-                        }
-                        if (today) expected += today.daily * frac;
-                        $('div-expected').textContent = fmt(expected, 4);
-                        $('div-today').textContent = fmt(today ? today.daily * frac : 0, 4);
-                        $('div-actual').textContent = fmt(actual, 0);
-                        if (today) {
-                            const perSec = today.daily / 86400;
-                            $('div-note').textContent = '오늘 예상 일배당 ' + fmt(today.daily, 0) + '원 · 초당 약 ' + fmt(perSec, 5) + '원씩 증가';
-                        } else {
-                            $('div-note').textContent = '';
-                        }
-                        const k = new Date(Date.now() + KST);
-                        $('div-asof').textContent = k.getUTCFullYear() + '. ' + String(k.getUTCMonth() + 1).padStart(2, '0') + '. ' + String(k.getUTCDate()).padStart(2, '0') + ' 기준'
-                            + (lastLoaded ? ' · 시트 갱신 ' + hms(lastLoaded) : '');
+            // 오늘 기준 계산값
+            function calc() {
+                const todayStart = kstDayStart();
+                const frac = ((Date.now() + KST) - todayStart) / DAY;
+                let expected = 0, actual = 0, today = null;
+                for (const d of data) {
+                    if (d.t < todayStart) { expected += d.daily; actual = d.actual; }
+                    else if (d.t === todayStart) { today = d; actual = d.actual; }
                 }
+                const todayAmt = today ? today.daily * frac : 0;
+                expected += todayAmt;
+                return { expected, actual, today, todayAmt };
             }
 
-            $('div-refresh').addEventListener('click', load);
+            function tick() {
+                if (!data) return;
+                const c = calc();
+                const exp4 = fmt(c.expected, 4), today4 = fmt(c.todayAmt, 4), act0 = fmt(c.actual, 0);
+                setText('div-expected', exp4); setText('dm-expected', exp4);
+                setText('div-today', today4);  setText('dm-today', today4);
+                setText('div-actual', act0);   setText('dm-actual', act0);
+
+                const note = c.today
+                    ? '오늘 예상 일배당 ' + fmt(c.today.daily, 0) + '원 · 초당 약 ' + fmt(c.today.daily / 86400, 5) + '원씩 증가'
+                    : '';
+                setText('div-note', note);
+                setText('dm-persec', note);
+
+                const k = new Date(Date.now() + KST);
+                const asof = k.getUTCFullYear() + '. ' + String(k.getUTCMonth() + 1).padStart(2, '0') + '. ' + String(k.getUTCDate()).padStart(2, '0') + ' 기준'
+                    + (lastLoaded ? ' · 시트 갱신 ' + hms(lastLoaded) : '');
+                setText('div-asof', asof);
+                setText('dm-asof', asof);
+            }
+
+            // 상세 창의 "배당 정보" 채우기 (오늘 행 기준, 없으면 마지막 지난 행)
+            function fillInfo() {
+                const todayStart = kstDayStart();
+                let row = null;
+                for (const d of data) if (d.t <= todayStart) row = d;
+                const won = n => fmt(n, 0) + '원';
+                setText('dm-qty', row ? fmt(row.qty, 0) + '주' : '-');
+                setText('dm-daily', row ? won(row.daily) : '-');
+                setText('dm-hour', row ? fmt(row.daily / 24, 2) + '원' : '-');
+                setText('dm-week', row ? won(row.week) : '-');
+                setText('dm-month', row ? won(row.month) : '-');
+                setText('dm-year', row ? won(row.year) : '-');
+            }
+
+            // ----- 차트 (Chart.js, 상세 창을 열 때 지연 로드) -----
+            function loadChartJs() {
+                if (window.Chart) return Promise.resolve();
+                return new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = CHART_JS;
+                    s.onload = resolve;
+                    s.onerror = () => reject(new Error('Chart.js 로드 실패'));
+                    document.head.appendChild(s);
+                });
+            }
+
+            function renderCharts() {
+                if (!data) return;
+                loadChartJs().then(() => {
+                    $('dm-chart-msg').hidden = true;
+                    charts.splice(0).forEach(ch => ch.destroy());
+
+                    const ACCENT = '#8a6a3f', ACCENT_DK = '#6b4f2e', INK = '#16130f', MUTED = '#9b938a', LINE = '#e8e4dd';
+                    const todayStart = kstDayStart();
+                    let todayIdx = -1;
+                    data.forEach((d, i) => { if (d.t <= todayStart) todayIdx = i; });
+
+                    const pad = v => String(v).padStart(2, '0');
+                    const labels = data.map(d => { const k = new Date(d.t); return pad(k.getUTCFullYear() % 100) + '.' + pad(k.getUTCMonth() + 1) + '.' + pad(k.getUTCDate()); });
+                    let sum = 0;
+                    const cum = data.map(d => (sum += d.daily));       // 각 일자 종료 시점의 누적
+
+                    const opts = legend => ({
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { display: legend, labels: { boxWidth: 12, color: MUTED } },
+                            tooltip: { callbacks: { label: c => ' ' + c.dataset.label + ': ' + fmt(c.parsed.y, 0) + '원' } }
+                        },
+                        scales: {
+                            x: { ticks: { maxTicksLimit: 5, maxRotation: 0, color: MUTED }, grid: { display: false } },
+                            y: { beginAtZero: true, ticks: { maxTicksLimit: 5, color: MUTED, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE } }
+                        }
+                    });
+
+                    charts.push(new Chart($('dm-chart-cum'), {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [
+                                {
+                                    label: '예상 누적배당',
+                                    data: cum,
+                                    borderColor: ACCENT, backgroundColor: ACCENT + '1a', fill: true,
+                                    borderWidth: 2, tension: 0.2,
+                                    pointRadius: c => c.dataIndex === todayIdx ? 5 : 0,
+                                    pointBackgroundColor: ACCENT_DK,
+                                    segment: { borderDash: c => c.p0DataIndex >= todayIdx ? [5, 4] : undefined }
+                                },
+                                {
+                                    label: '실배당 누적',
+                                    data: data.map((d, i) => i <= todayIdx ? d.actual : null),
+                                    borderColor: INK, backgroundColor: INK, fill: false,
+                                    borderWidth: 2, stepped: true, pointRadius: 0
+                                }
+                            ]
+                        },
+                        options: opts(true)
+                    }));
+
+                    charts.push(new Chart($('dm-chart-day'), {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: '일 예상배당',
+                                data: data.map(d => d.daily),
+                                backgroundColor: c => c.dataIndex === todayIdx ? ACCENT_DK : (c.dataIndex < todayIdx ? ACCENT : ACCENT + '55'),
+                                barPercentage: 1, categoryPercentage: 1
+                            }]
+                        },
+                        options: opts(false)
+                    }));
+                }).catch(err => {
+                    console.error('차트 오류:', err);
+                    $('dm-chart-msg').hidden = false;
+                });
+            }
+
+            // ----- 상세 창 열기/닫기 -----
+            function openDividend() {
+                modal.classList.add('active');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                if (data) { fillInfo(); tick(); renderCharts(); }
+                $('dm-close').focus();
+            }
+            function closeDividend() {
+                modal.classList.remove('active');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                $('dividend').focus({ preventScroll: true });
+            }
+
+            const panel = $('dividend');
+            panel.addEventListener('click', openDividend);
+            panel.addEventListener('keydown', e => {
+                if (e.target !== panel) return;
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDividend(); }
+            });
+            $('dm-close').addEventListener('click', closeDividend);
+            modal.addEventListener('click', e => { if (e.target === modal) closeDividend(); });
+            window.addEventListener('keydown', e => { if (e.key === 'Escape' && isModalOpen()) closeDividend(); });
+
+            $('div-refresh').addEventListener('click', e => { e.stopPropagation(); load(); });
             load();
             setInterval(tick, 1000);
             setInterval(() => { if (!document.hidden) load(); }, REFRESH_MS);

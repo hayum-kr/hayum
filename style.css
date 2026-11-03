@@ -322,6 +322,51 @@ main { display: block; }
 }
 .dividend-value em { font-style: normal; font-size: 0.55em; margin-left: 4px; color: var(--muted); }
 .dividend-note { margin: 16px 0 0; font-size: 12.5px; color: var(--muted); }
+.dividend { cursor: pointer; transition: border-color 0.3s; }
+.dividend:hover,
+.dividend:focus-visible { border-color: var(--accent); outline: none; }
+.dividend-more { margin: 8px 0 0; font-size: 12.5px; color: var(--accent); text-align: right; }
+
+/* Dividend detail modal */
+.dividend-modal { max-width: 640px; overscroll-behavior: contain; }
+.dm-asof { margin: 0 0 16px; font-size: 12.5px; color: var(--muted); }
+.dm-live {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    padding: 18px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+}
+.dm-live .dividend-value { font-size: clamp(18px, 3.4vw, 24px); }
+.dm-persec { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }
+.dm-sub { margin: 26px 0 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; color: var(--ink); }
+.dm-info { margin: 0; }
+.dm-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 2px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+}
+.dm-row:first-child { border-top: none; }
+.dm-row dt { color: var(--ink-soft); }
+.dm-row dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dm-chart { position: relative; height: 220px; }
+.dm-foot { margin: 22px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+.dm-foot[hidden] { display: none; }
+@media (max-width: 720px) {
+    #dividendModal { padding: 0; align-items: flex-end; }
+    .dividend-modal {
+        max-width: none;
+        max-height: 92vh;
+        border-radius: 16px 16px 0 0;
+        padding: 22px 18px 28px;
+    }
+    .dm-live { grid-template-columns: 1fr; gap: 12px; }
+    .dm-live .dividend-cell { flex-direction: row; justify-content: space-between; align-items: baseline; }
+}
 @media (max-width: 720px) {
     .dividend-grid { grid-template-columns: 1fr; gap: 16px; }
 }
