@@ -143,16 +143,20 @@
                         <div class="dividend-head">
                             <span class="dividend-title">배당 현황</span>
                             <span class="dividend-asof" id="div-asof">불러오는 중…</span>
-                            <button type="button" class="dividend-refresh" id="div-refresh">새로고침</button>
+                            <button type="button" class="dividend-refresh" id="div-refresh" title="새로고침" aria-label="새로고침"><span class="dividend-refresh-icon">🔄</span></button>
                         </div>
                         <div class="dividend-grid">
                             <div class="dividend-cell">
-                                <span class="dividend-label">실배당 (누적)</span>
-                                <span class="dividend-value"><span id="div-actual">-</span><em>원</em></span>
+                                <span class="dividend-label">오늘 예상배당</span>
+                                <span class="dividend-value"><span id="div-today">-</span><em>원</em></span>
                             </div>
                             <div class="dividend-cell">
                                 <span class="dividend-label">예상배당 (누적)</span>
                                 <span class="dividend-value"><span id="div-expected">-</span><em>원</em></span>
+                            </div>
+                            <div class="dividend-cell">
+                                <span class="dividend-label">실배당 (누적)</span>
+                                <span class="dividend-value"><span id="div-actual">-</span><em>원</em></span>
                             </div>
                         </div>
                         <p class="dividend-note" id="div-note"></p>
@@ -325,7 +329,7 @@
                 if (loading) return;
                 loading = true;
                 const btn = $('div-refresh');
-                btn.disabled = true; btn.textContent = '불러오는 중…';
+                btn.disabled = true; btn.classList.add('loading');
                 fetch(URL, { cache: 'no-store' })
                     .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
                     .then(text => { data = parseSheet(text); lastLoaded = new Date(); tick(); })
@@ -334,7 +338,7 @@
                         if (!data) $('div-asof').textContent = '데이터를 불러오지 못했습니다';
                         else $('div-note').textContent += ' · 갱신 실패(이전 데이터 표시 중)';
                     })
-                    .finally(() => { loading = false; btn.disabled = false; btn.textContent = '새로고침'; });
+                    .finally(() => { loading = false; btn.disabled = false; btn.classList.remove('loading'); });
             }
 
             function tick() {
@@ -349,6 +353,7 @@
                         }
                         if (today) expected += today.daily * frac;
                         $('div-expected').textContent = fmt(expected, 4);
+                        $('div-today').textContent = fmt(today ? today.daily * frac : 0, 4);
                         $('div-actual').textContent = fmt(actual, 0);
                         if (today) {
                             const perSec = today.daily / 86400;
