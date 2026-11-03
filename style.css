@@ -313,11 +313,14 @@ main { display: block; }
 .dividend-cell { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .dividend-label { font-size: 13px; color: var(--ink-soft); }
 .dividend-value {
-    font-family: 'Cormorant Garamond', serif;
+    /* 숫자는 Pretendard(고정폭 숫자)로: 자릿수가 바뀌어도 흔들리지 않고 정렬이 깔끔함 */
+    font-family: 'Pretendard', system-ui, -apple-system, 'Malgun Gothic', sans-serif;
     font-size: clamp(20px, 2.6vw, 26px);
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: var(--accent-dk);
     font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
     overflow-wrap: anywhere;
 }
 .dividend-value em { font-style: normal; font-size: 0.55em; margin-left: 4px; color: var(--muted); }
@@ -329,6 +332,7 @@ main { display: block; }
 
 /* Dividend detail modal */
 .dividend-modal { max-width: 640px; overscroll-behavior: contain; }
+.dividend-modal:focus { outline: none; }
 .dm-asof { margin: 0 0 16px; font-size: 12.5px; color: var(--muted); }
 .dm-live {
     display: grid;
@@ -346,7 +350,7 @@ main { display: block; }
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 2px;
+    padding: 10px 0;
     border-top: 1px solid var(--line);
     font-size: 14px;
 }
@@ -368,7 +372,21 @@ main { display: block; }
     .dm-live .dividend-cell { flex-direction: row; justify-content: space-between; align-items: baseline; }
 }
 @media (max-width: 720px) {
-    .dividend-grid { grid-template-columns: 1fr; gap: 16px; }
+    /* 헤더: 제목 + 새로고침 한 줄, 기준시각은 아래 줄 */
+    .dividend-head { flex-wrap: wrap; align-items: center; row-gap: 6px; }
+    .dividend-title { flex: 1; }
+    .dividend-asof { order: 3; flex-basis: 100%; text-align: left; }
+    /* 숫자: 라벨 왼쪽 / 값 오른쪽 */
+    .dividend-grid { grid-template-columns: 1fr; gap: 0; }
+    .dividend-grid .dividend-cell {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
+    }
+    .dividend-grid .dividend-cell:first-child { border-top: none; }
 }
 @media (max-width: 520px) {
     .dividend { padding: 20px; }

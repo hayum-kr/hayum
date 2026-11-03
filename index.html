@@ -247,7 +247,7 @@
 
     <!-- ===== Dividend Modal ===== -->
     <div id="dividendModal" class="modal-overlay" aria-hidden="true">
-        <div class="modal-box dividend-modal" role="dialog" aria-modal="true" aria-label="배당 현황 상세">
+        <div class="modal-box dividend-modal" id="dm-box" tabindex="-1" role="dialog" aria-modal="true" aria-label="배당 현황 상세">
             <div class="modal-header">
                 <span class="modal-title">DIVIDEND</span>
                 <button type="button" class="modal-close-btn" id="dm-close" aria-label="닫기">&times;</button>
@@ -498,7 +498,8 @@
                         },
                         scales: {
                             x: { ticks: { maxTicksLimit: 5, maxRotation: 0, color: MUTED }, grid: { display: false } },
-                            y: { beginAtZero: true, ticks: { maxTicksLimit: 5, color: MUTED, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE } }
+                            // y축 폭을 고정해서 두 차트의 가로 축이 서로 맞도록 함
+                            y: { beginAtZero: true, ticks: { maxTicksLimit: 5, color: MUTED, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE }, afterFit: s => { s.width = 58; } }
                         }
                     });
 
@@ -552,7 +553,7 @@
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
                 if (data) { fillInfo(); tick(); renderCharts(); }
-                $('dm-close').focus();
+                $('dm-box').focus({ preventScroll: true });
             }
             function closeDividend() {
                 modal.classList.remove('active');
