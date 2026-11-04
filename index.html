@@ -22,7 +22,7 @@
     gtag('config', 'G-F1MZ8QJR3N');
     </script>
 
-    <link rel="stylesheet" href="style.css?v=20261104c">
+    <link rel="stylesheet" href="style.css?v=20261104d">
 </head>
 <body>
 
@@ -303,6 +303,29 @@
                         <div class="dm-goal-line"><span>남은 금액</span><b id="dm-goal-remain-act">-</b></div>
                     </div>
                 </div>
+                <div class="dm-goal run" id="dm-goal-run">
+                    <div class="dm-goal-name">월 환산 (현재 수량 유지 시)</div>
+                    <div class="dm-goal-ring">
+                        <svg viewBox="0 0 200 200" role="img" aria-label="월 환산 배당 목표 달성률">
+                            <defs>
+                                <linearGradient id="dmGradRun" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stop-color="#5f9d78"/>
+                                    <stop offset="1" stop-color="#2f6b48"/>
+                                </linearGradient>
+                            </defs>
+                            <circle class="dm-goal-track" cx="100" cy="100" r="86"/>
+                            <circle class="dm-goal-bar" id="dm-goal-bar-run" cx="100" cy="100" r="86" stroke="url(#dmGradRun)"/>
+                        </svg>
+                        <div class="dm-goal-center">
+                            <span class="dm-goal-pct" id="dm-goal-pct-run">0%</span>
+                            <span class="dm-goal-sub">달성률</span>
+                        </div>
+                    </div>
+                    <div class="dm-goal-text">
+                        <div class="dm-goal-line"><span>월 환산 금액</span><b id="dm-goal-now-run">-</b></div>
+                        <div class="dm-goal-line"><span>남은 금액</span><b id="dm-goal-remain-run">-</b></div>
+                    </div>
+                </div>
             </div>
             <p class="dm-goal-note">
                 이번 달 말 예상 합계 <b id="dm-goal-proj">-</b><br>
@@ -417,7 +440,8 @@
             let loading = false;
             const GOAL = 10000;                 // 월 배당 목표 (원)
             const RING_C = 2 * Math.PI * 86;    // 목표 링 둘레 (r=86)
-            let goalMonth = null;               // 시트에서 월 합계(예상)가 처음 목표를 넘는 온전한 달
+            let curMonthly = 0;                 // 시트 '월배당'(현재 수량 유지 시 월 환산)
+            let goalMonth = null;              // 시트에서 월 합계(예상)가 처음 목표를 넘는 온전한 달
             const charts = [];
             const modal = $('dividendModal');
             const isModalOpen = () => modal.classList.contains('active');
@@ -530,6 +554,7 @@
                 };
                 gauge('exp', c.monthExpected, 2);
                 gauge('act', c.monthActual, 0);
+                gauge('run', curMonthly, 0);
                 setText('dm-goal-title', (k.getUTCMonth() + 1) + '월 배당 목표');
                 setText('dm-goal-target', '월 ' + fmt(GOAL, 0) + '원');
                 setText('dm-goal-proj', fmt(c.monthProj, 0) + '원' + (c.monthProj >= GOAL ? ' (달성 예정)' : ''));
@@ -547,6 +572,7 @@
                 setText('dm-hour', row ? fmt(row.daily / 24, 2) + '원' : '-');
                 setText('dm-week', row ? won(row.week) : '-');
                 setText('dm-month', row ? won(row.month) : '-');
+                curMonthly = row ? row.month : 0;
                 setText('dm-year', row ? won(row.year) : '-');
 
                 // 시트에서 월 합계(예상)가 처음 목표를 넘는 "온전한 달" 찾기
