@@ -39,3 +39,6 @@ tmp/
 # Local backups
 *_backup.html
 *_backup.css
+
+# Local handoff notes
+handoff.md
