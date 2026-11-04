@@ -254,7 +254,7 @@
             </div>
             <p class="dm-asof" id="dm-asof"></p>
 
-            <h4 class="dm-sub dm-sub-first" id="dm-goal-title">월 배당 목표</h4>
+            <h4 class="dm-sub dm-sub-first" id="dm-goal-title">ISA 월 배당 목표</h4>
             <p class="dm-goal-head">이번 달 목표 <b id="dm-goal-target">-</b></p>
             <div class="dm-goals">
                 <div class="dm-goal" id="dm-goal-exp">
@@ -332,7 +332,7 @@
                 월 배당 목표 첫 달성 예상 <b id="dm-goal-first">-</b>
             </p>
 
-            <h4 class="dm-sub">실시간 배당</h4>
+            <h4 class="dm-sub">ISA 실시간 배당</h4>
             <div class="dm-live">
                 <div class="dividend-cell">
                     <span class="dividend-label">오늘 예상배당</span>
@@ -349,7 +349,7 @@
             </div>
             <p class="dm-persec" id="dm-persec"></p>
 
-            <h4 class="dm-sub">배당 정보</h4>
+            <h4 class="dm-sub">ISA 배당 정보</h4>
             <dl class="dm-info">
                 <div class="dm-row"><dt>보유 수량 (합계)</dt><dd id="dm-qty">-</dd></div>
                 <div class="dm-row"><dt>오늘 예상 일배당</dt><dd id="dm-daily">-</dd></div>
@@ -359,8 +359,9 @@
                 <div class="dm-row"><dt>연간 (현재 수량 유지 시)</dt><dd id="dm-year">-</dd></div>
             </dl>
 
-            <h4 class="dm-sub">실제 배당 수령 내역</h4>
+            <h4 class="dm-sub">법인 계좌 · 실제 배당 수령 내역</h4>
             <p class="dm-goal-head" id="dm-rc-range">시트 '배당내역' 기준</p>
+            <p class="dm-goal-head">ISA와 별개 계좌입니다. 배당 받을 때마다 재투자하는 계좌의 실제 입금 이력입니다.</p>
             <dl class="dm-info">
                 <div class="dm-row"><dt>누적 수령액</dt><dd id="dm-rc-total">-</dd></div>
                 <div class="dm-row"><dt>이번 달 수령액</dt><dd id="dm-rc-month">-</dd></div>
@@ -371,10 +372,13 @@
             <ul class="dm-rc-list" id="dm-rc-list"></ul>
             <p class="dm-foot" id="dm-rc-msg" hidden>수령 내역을 불러오지 못했습니다.</p>
 
-            <h4 class="dm-sub">누적 배당 추이</h4>
+            <h4 class="dm-sub">ISA 월별 배당 · 예상 vs 실제</h4>
+            <div class="dm-chart"><canvas id="dm-chart-mon" aria-label="ISA 월별 예상과 실제 배당 차트" role="img"></canvas></div>
+
+            <h4 class="dm-sub">ISA 누적 배당 추이</h4>
             <div class="dm-chart"><canvas id="dm-chart-cum" aria-label="누적 배당 추이 차트" role="img"></canvas></div>
 
-            <h4 class="dm-sub">일별 예상 배당</h4>
+            <h4 class="dm-sub">ISA 일별 예상 배당</h4>
             <div class="dm-chart"><canvas id="dm-chart-day" aria-label="일별 예상 배당 차트" role="img"></canvas></div>
             <p class="dm-foot" id="dm-chart-msg" hidden>차트를 불러오지 못했습니다.</p>
 
@@ -625,7 +629,7 @@
                 gauge('exp', c.monthExpected, 2);
                 gauge('act', c.monthActual, 0);
                 gauge('run', curMonthly, 0);
-                setText('dm-goal-title', (k.getUTCMonth() + 1) + '월 배당 목표');
+                setText('dm-goal-title', 'ISA ' + (k.getUTCMonth() + 1) + '월 배당 목표');
                 setText('dm-goal-target', '월 ' + fmt(GOAL, 0) + '원');
                 setText('dm-goal-proj', fmt(c.monthProj, 0) + '원' + (c.monthProj >= GOAL ? ' (달성 예정)' : ''));
                 setText('dm-goal-first', goalMonth ? goalMonth.y + '년 ' + (goalMonth.mo + 1) + '월' : '시트 기간 내 없음');
@@ -706,6 +710,31 @@
                             y: { beginAtZero: true, ticks: { maxTicksLimit: 5, color: INK_SOFT, font: { size: 14 }, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE }, afterFit: s => { s.width = 70; } }
                         }
                     });
+
+                    // 월별: 예측(일배당 합) vs 실제(누적실배당의 월 증가분)
+                    const mons = new Map();
+                    let prevAct = 0;
+                    const monKeys = [];
+                    for (const d of data) {
+                        const k = new Date(d.t), key = k.getUTCFullYear() * 12 + k.getUTCMonth();
+                        if (!mons.has(key)) { mons.set(key, { exp: 0, base: prevAct, last: prevAct, past: false }); monKeys.push(key); }
+                        const m = mons.get(key);
+                        m.exp += d.daily; m.last = d.actual; prevAct = d.actual;
+                        if (d.t <= todayStart) m.past = true;
+                    }
+                    const monLabels = monKeys.map(k => pad(Math.floor(k / 12) % 100) + '.' + pad(k % 12 + 1));
+                    const nowKey = new Date(todayStart).getUTCFullYear() * 12 + new Date(todayStart).getUTCMonth();
+                    charts.push(new Chart($('dm-chart-mon'), {
+                        type: 'bar',
+                        data: {
+                            labels: monLabels,
+                            datasets: [
+                                { label: '예상 (시트 일배당 합)', data: monKeys.map(k => Math.round(mons.get(k).exp)), backgroundColor: monKeys.map(k => k > nowKey ? ACCENT + '66' : ACCENT) },
+                                { label: '실제 입금', data: monKeys.map(k => mons.get(k).past ? mons.get(k).last - mons.get(k).base : null), backgroundColor: INK }
+                            ]
+                        },
+                        options: opts(true)
+                    }));
 
                     charts.push(new Chart($('dm-chart-cum'), {
                         type: 'line',
