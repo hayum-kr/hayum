@@ -369,7 +369,6 @@
                 <div class="dm-row"><dt>입금 횟수</dt><dd id="dm-rc-count">-</dd></div>
             </dl>
             <div class="dm-rc-months" id="dm-rc-months"></div>
-            <ul class="dm-rc-list" id="dm-rc-list"></ul>
             <p class="dm-foot" id="dm-rc-msg" hidden>수령 내역을 불러오지 못했습니다.</p>
 
             <h4 class="dm-sub">S계좌 월별 배당 · 예상 vs 실제</h4>
@@ -534,14 +533,6 @@
                     row.appendChild(bar);
                     row.appendChild(mk('b', 'dm-rc-mval', fmt(v, 0) + '원'));
                     monthsEl.appendChild(row);
-                }
-                const listEl = $('dm-rc-list'); listEl.textContent = '';
-                for (let i = items.length - 1; i >= 0; i--) {
-                    const x = items[i], li = mk('li');
-                    li.appendChild(mk('span', 'dm-rc-date', dstr(x.t)));
-                    li.appendChild(mk('span', 'dm-rc-name', x.name));
-                    li.appendChild(mk('b', 'dm-rc-amt', fmt(x.amt, 0) + '원'));
-                    listEl.appendChild(li);
                 }
             }
 
