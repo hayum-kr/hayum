@@ -453,6 +453,16 @@ main { display: block; }
 .dm-row:first-child { border-top: none; }
 .dm-row dt { color: var(--ink-soft); }
 .dm-row dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dm-rc-months { margin: 16px 0 6px; display: grid; gap: 8px; }
+.dm-rc-m { display: grid; grid-template-columns: 62px 1fr auto; align-items: center; gap: 10px; font-size: 16px; }
+.dm-rc-mlabel { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.dm-rc-bar { height: 12px; background: var(--line); border-radius: 6px; overflow: hidden; }
+.dm-rc-bar i { display: block; height: 100%; background: linear-gradient(90deg, #5f9d78, #2f6b48); border-radius: 6px; }
+.dm-rc-mval { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; min-width: 92px; }
+.dm-rc-list { list-style: none; margin: 14px 0 0; padding: 0; max-height: 300px; overflow-y: auto; border-top: 1px solid var(--line); }
+.dm-rc-list li { display: grid; grid-template-columns: 92px 1fr auto; gap: 10px; align-items: baseline; padding: 11px 2px; border-bottom: 1px solid var(--line); font-size: 16px; }
+.dm-rc-date { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.dm-rc-amt { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
 .dm-chart { position: relative; height: 250px; }
 .dm-foot { margin: 24px 0 0; font-size: 14.5px; color: var(--muted); line-height: 1.8; }
 .dm-foot[hidden] { display: none; }

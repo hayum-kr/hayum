@@ -22,7 +22,7 @@
     gtag('config', 'G-F1MZ8QJR3N');
     </script>
 
-    <link rel="stylesheet" href="style.css?v=20261104d">
+    <link rel="stylesheet" href="style.css?v=20261104e">
 </head>
 <body>
 
@@ -359,6 +359,18 @@
                 <div class="dm-row"><dt>연간 (현재 수량 유지 시)</dt><dd id="dm-year">-</dd></div>
             </dl>
 
+            <h4 class="dm-sub">실제 배당 수령 내역</h4>
+            <p class="dm-goal-head" id="dm-rc-range">시트 '배당내역' 기준</p>
+            <dl class="dm-info">
+                <div class="dm-row"><dt>누적 수령액</dt><dd id="dm-rc-total">-</dd></div>
+                <div class="dm-row"><dt>이번 달 수령액</dt><dd id="dm-rc-month">-</dd></div>
+                <div class="dm-row"><dt>최근 입금</dt><dd id="dm-rc-last">-</dd></div>
+                <div class="dm-row"><dt>입금 횟수</dt><dd id="dm-rc-count">-</dd></div>
+            </dl>
+            <div class="dm-rc-months" id="dm-rc-months"></div>
+            <ul class="dm-rc-list" id="dm-rc-list"></ul>
+            <p class="dm-foot" id="dm-rc-msg" hidden>수령 내역을 불러오지 못했습니다.</p>
+
             <h4 class="dm-sub">누적 배당 추이</h4>
             <div class="dm-chart"><canvas id="dm-chart-cum" aria-label="누적 배당 추이 차트" role="img"></canvas></div>
 
@@ -472,7 +484,65 @@
                 return d;
             }
 
+            // ===== 실제 배당 수령 내역 (시트 '배당내역' 탭, gid로 조회) =====
+            const RC_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&gid=1679568385';
+            function mk(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+            function loadReceipts() {
+                fetch(RC_URL, { cache: 'no-store' })
+                    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+                    .then(text => {
+                        const rows = parseCSV(text);
+                        const head = rows[0].map(h => h.replace(/\s+/g, ''));
+                        const cD = head.indexOf('입금일자'), cN = head.indexOf('종목명'), cA = head.indexOf('배당금');
+                        if (cD < 0 || cA < 0) throw new Error('컬럼을 찾을 수 없습니다.');
+                        const items = rows.slice(1)
+                            .map(r => ({ t: ymd(r[cD]), name: (r[cN] || '').trim(), amt: num(r[cA]) }))
+                            .filter(x => !isNaN(x.t) && x.amt > 0)
+                            .sort((a, b) => a.t - b.t);
+                        if (!items.length) throw new Error('데이터가 없습니다.');
+                        renderReceipts(items);
+                        $('dm-rc-msg').hidden = true;
+                    })
+                    .catch(err => { console.error('수령 내역 오류:', err); $('dm-rc-msg').hidden = false; });
+            }
+            function renderReceipts(items) {
+                const dstr = t => { const d = new Date(t); return d.getUTCFullYear() + '.' + String(d.getUTCMonth() + 1).padStart(2, '0') + '.' + String(d.getUTCDate()).padStart(2, '0'); };
+                const mkey = t => { const d = new Date(t); return d.getUTCFullYear() * 12 + d.getUTCMonth(); };
+                const total = items.reduce((s, x) => s + x.amt, 0);
+                const last = items[items.length - 1], first = items[0];
+                const nowKey = mkey(kstDayStart());
+                const sums = new Map();
+                for (const x of items) sums.set(mkey(x.t), (sums.get(mkey(x.t)) || 0) + x.amt);
+                setText('dm-rc-total', fmt(total, 0) + '원');
+                setText('dm-rc-month', fmt(sums.get(nowKey) || 0, 0) + '원');
+                setText('dm-rc-last', dstr(last.t) + ' · ' + fmt(last.amt, 0) + '원');
+                setText('dm-rc-count', items.length + '건');
+                setText('dm-rc-range', dstr(first.t) + ' ~ ' + dstr(last.t) + ' · 시트 \'배당내역\' 기준');
+
+                const monthsEl = $('dm-rc-months'); monthsEl.textContent = '';
+                const startKey = mkey(first.t), endKey = Math.max(mkey(last.t), nowKey);
+                let max = 0; for (const v of sums.values()) max = Math.max(max, v);
+                for (let k = startKey; k <= endKey; k++) {
+                    const v = sums.get(k) || 0;
+                    const row = mk('div', 'dm-rc-m');
+                    row.appendChild(mk('span', 'dm-rc-mlabel', Math.floor(k / 12) + '.' + String(k % 12 + 1).padStart(2, '0')));
+                    const bar = mk('span', 'dm-rc-bar'); const fill = mk('i'); fill.style.width = (max ? v / max * 100 : 0).toFixed(1) + '%'; bar.appendChild(fill);
+                    row.appendChild(bar);
+                    row.appendChild(mk('b', 'dm-rc-mval', fmt(v, 0) + '원'));
+                    monthsEl.appendChild(row);
+                }
+                const listEl = $('dm-rc-list'); listEl.textContent = '';
+                for (let i = items.length - 1; i >= 0; i--) {
+                    const x = items[i], li = mk('li');
+                    li.appendChild(mk('span', 'dm-rc-date', dstr(x.t)));
+                    li.appendChild(mk('span', 'dm-rc-name', x.name));
+                    li.appendChild(mk('b', 'dm-rc-amt', fmt(x.amt, 0) + '원'));
+                    listEl.appendChild(li);
+                }
+            }
+
             function load() {
+                loadReceipts();
                 if (loading) return;
                 loading = true;
                 const btn = $('div-refresh');
