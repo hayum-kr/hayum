@@ -332,6 +332,14 @@
                 월 배당 목표 첫 달성 예상 <b id="dm-goal-first">-</b>
             </p>
 
+            <h4 class="dm-sub">S계좌 일 1만원 도달 예상</h4>
+            <dl class="dm-info">
+                <div class="dm-row"><dt>현재 속도 (하루 <span id="dm-pace">-</span> 매수)</dt><dd id="dm-d1">-</dd></div>
+                <div class="dm-row"><dt>매수 2배로 늘리면</dt><dd id="dm-d2">-</dd></div>
+                <div class="dm-row"><dt>매수 3배로 늘리면</dt><dd id="dm-d3">-</dd></div>
+            </dl>
+            <p class="dm-foot" id="dm-d-note">시트의 매수 속도와 1주당 배당이 계속된다고 보고 계산한 추정입니다.</p>
+
             <h4 class="dm-sub">S계좌 실시간 배당</h4>
             <div class="dm-live">
                 <div class="dividend-cell">
@@ -638,6 +646,30 @@
                 setText('dm-week', row ? won(row.week) : '-');
                 setText('dm-month', row ? won(row.month) : '-');
                 curMonthly = row ? row.month : 0;
+
+                // ----- 일 배당 1만원 도달 예상 (시트의 수량 증가 속도로 외삽) -----
+                const DGOAL = 10000;
+                const lastRow = data[data.length - 1];
+                const span = row ? (lastRow.t - row.t) / DAY : 0;
+                const rate = span > 0 ? (lastRow.qty - row.qty) / span : 0;          // 하루 매수 수량(주)
+                const slope = span > 0 ? (lastRow.daily - row.daily) / span : 0;     // 일배당이 하루에 늘어나는 금액(원)
+                const marginal = rate > 0 ? slope / rate : 0;                        // 추가 1주당 일배당 (여러 종목 평균)
+                const eta = mult => {
+                    if (!row || !(slope > 0)) return '계산 불가';
+                    if (row.daily >= DGOAL) return '이미 달성';
+                    const days = Math.ceil((DGOAL - row.daily) / (slope * mult));
+                    const d = new Date(todayStart + days * DAY);
+                    const yrs = days / 365.25, y = Math.floor(yrs), mo = Math.round((yrs - y) * 12);
+                    const after = y > 0 ? y + '년' + (mo ? ' ' + mo + '개월' : '') : mo + '개월';
+                    return d.getUTCFullYear() + '년 ' + (d.getUTCMonth() + 1) + '월 ' + d.getUTCDate() + '일 (약 ' + after + ' 후)';
+                };
+                setText('dm-pace', rate > 0 ? fmt(rate, 1) + '주' : '-');
+                setText('dm-d1', eta(1));
+                setText('dm-d2', eta(2));
+                setText('dm-d3', eta(3));
+                setText('dm-d-note', slope > 0
+                    ? '일 배당이 하루 약 ' + fmt(slope, 1) + '원씩 늘어나는 속도(추가 1주당 약 ' + fmt(marginal, 2) + '원)로 계산했습니다. 시트의 매수 속도와 1주당 배당이 계속된다고 본 추정입니다.'
+                    : '');
                 setText('dm-year', row ? won(row.year) : '-');
 
                 // 시트에서 월 합계(예상)가 처음 목표를 넘는 "온전한 달" 찾기
