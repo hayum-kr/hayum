@@ -376,7 +376,7 @@
                     let daily = 0, total = 0;
                     for (let i = 0; i < qty.length; i++) { daily += qty[i] * hs[i].perShare; total += qty[i]; }
                     if (act.has(t)) lastActual = act.get(t);
-                    out.push({ t, daily, actual: lastActual, qty: total, week: daily * 7, month: daily * 28, year: daily * 336 });
+                    out.push({ t, daily, actual: lastActual, qty: total, week: daily * 7, month: daily * 30, year: daily * 365 });
                 }
                 return out;
             }
