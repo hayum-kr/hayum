@@ -338,7 +338,7 @@
                 <div class="dm-row"><dt>매수 2배로 늘리면</dt><dd id="dm-d2">-</dd></div>
                 <div class="dm-row"><dt>매수 3배로 늘리면</dt><dd id="dm-d3">-</dd></div>
             </dl>
-            <p class="dm-foot" id="dm-d-note">시트의 매수 속도와 1주당 배당이 계속된다고 보고 계산한 추정입니다.</p>
+            <p class="dm-foot" id="dm-d-note">계획의 매수 속도와 1주당 배당이 계속된다고 보고 계산한 추정입니다.</p>
 
             <h4 class="dm-sub">S계좌 실시간 배당</h4>
             <div class="dm-live">
@@ -392,7 +392,7 @@
             <p class="dm-foot">
                 일배당은 보유 수량 × 1주당 배당으로 계산한 하루치 예상 배당입니다.
                 초 단위로 늘어나는 숫자는 하루치를 24시간에 균등하게 나눈 환산값이며, 실제 입금은 입금일에 실배당으로 반영됩니다.
-                월 배당 목표는 달력 기준 한 달(한국 시간) 동안 쌓인 배당으로 계산합니다. 예상은 시트의 일배당, 실제는 입금된 실배당 기준이며 매월 1일에 다시 0에서 시작합니다.
+                월 배당 목표는 달력 기준 한 달(한국 시간) 동안 쌓인 배당으로 계산합니다. 예상은 계획(일배당), 실제는 입금된 실배당 기준이며 매월 1일에 다시 0에서 시작합니다.
                 차트의 점선·옅은 막대는 미래 예상치이고, 모든 값은 예상이므로 실제와 다를 수 있습니다.
             </p>
         </div>
@@ -433,7 +433,8 @@
             const SHEET_NAME = 'ISA-일배당';
             const URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
                 '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(SHEET_NAME);
-            const CHART_JS = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+            const PLAN_URL = 'data/plan.json';
+            const CHART_JS ='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
             const $ = id => document.getElementById(id);
             const setText = (id, v) => { $(id).textContent = v; };
 
@@ -473,27 +474,47 @@
             const kstDayStart = () => { const n = Date.now() + KST; return n - (n % DAY); };
             const hms = d => { const k = new Date(d.getTime() + KST); return [k.getUTCHours(), k.getUTCMinutes(), k.getUTCSeconds()].map(v => String(v).padStart(2, '0')).join(':'); };
 
+            // 시트에서는 일자와 누적실배당(실제 입금)만 읽는다. 예상은 data/plan.json으로 계산.
             function parseSheet(text) {
                 const rows = parseCSV(text);
                 const head = rows[0].map(h => h.replace(/\s+/g, ''));
                 const cDate = head.indexOf('일자');
-                const cDaily = head.lastIndexOf('일배당');      // 포트폴리오 일배당
                 const cActual = head.indexOf('누적실배당');
-                if (cDate < 0 || cDaily < 0 || cActual < 0) throw new Error('컬럼을 찾을 수 없습니다.');
-                // 상세 정보용 컬럼 (없어도 동작)
-                const cQty = head.indexOf('포트폴수량'), cWeek = head.indexOf('주배당'),
-                      cMonth = head.indexOf('월배당'), cYear = head.indexOf('년배당');
-                const cell = (r, c) => c < 0 ? 0 : num(r[c]);
+                if (cDate < 0 || cActual < 0) throw new Error('컬럼을 찾을 수 없습니다.');
                 const d = rows.slice(1)
-                    .map(r => ({
-                        t: ymd(r[cDate]), daily: num(r[cDaily]), actual: num(r[cActual]),
-                        qty: cell(r, cQty), week: cell(r, cWeek), month: cell(r, cMonth), year: cell(r, cYear)
-                    }))
+                    .map(r => ({ t: ymd(r[cDate]), actual: num(r[cActual]) }))
                     .filter(x => !isNaN(x.t))
                     .sort((a, b) => a.t - b.t);
                 if (!d.length) throw new Error('데이터가 없습니다.');
                 return d;
             }
+
+            // ===== 계획(data/plan.json)으로 일자별 예상 배당 생성 =====
+            // BEGIN-PLAN
+            function buildSeries(plan, actualRows) {
+                const t0 = ymd(plan.start), t1 = ymd(plan.end);
+                if (isNaN(t0) || isNaN(t1) || t1 < t0) throw new Error('계획 기간이 올바르지 않습니다.');
+                const hs = plan.holdings;
+                const qty = hs.map(h => h.qty0);
+                const sched = plan.schedule.map(s => ({ t: ymd(s.from), n: s.perWeekday })).sort((a, b) => a.t - b.t);
+                const events = (plan.events || []).map(e => ({ t: ymd(e.date), add: e.add })).sort((a, b) => a.t - b.t);
+                const act = new Map(actualRows.map(r => [r.t, r.actual]));
+                const out = [];
+                let lastActual = 0;
+                for (let t = t0; t <= t1; t += DAY) {
+                    const wd = new Date(t).getUTCDay();
+                    let s = null;
+                    for (const x of sched) if (x.t <= t) s = x;
+                    if (s && wd >= 1 && wd <= 5) for (let i = 0; i < qty.length; i++) qty[i] += s.n[i] || 0;
+                    for (const e of events) if (e.t === t) for (let i = 0; i < qty.length; i++) qty[i] += e.add[i] || 0;
+                    let daily = 0, total = 0;
+                    for (let i = 0; i < qty.length; i++) { daily += qty[i] * hs[i].perShare; total += qty[i]; }
+                    if (act.has(t)) lastActual = act.get(t);
+                    out.push({ t, daily, actual: lastActual, qty: total, week: daily * 7, month: daily * 28, year: daily * 336 });
+                }
+                return out;
+            }
+            // END-PLAN
 
             // ===== 실제 배당 수령 내역 (시트 '배당내역' 탭, gid로 조회) =====
             const RC_URL = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&gid=1679568385';
@@ -550,10 +571,11 @@
                 loading = true;
                 const btn = $('div-refresh');
                 btn.disabled = true; btn.classList.add('loading');
-                fetch(URL, { cache: 'no-store' })
-                    .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
-                    .then(text => {
-                        data = parseSheet(text);
+                const getJson = u => fetch(u, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+                const getText = u => fetch(u, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.text(); });
+                Promise.all([getJson(PLAN_URL), getText(URL)])
+                    .then(([plan, text]) => {
+                        data = buildSeries(plan, parseSheet(text));
                         lastLoaded = new Date();
                         fillInfo();
                         tick();
@@ -631,7 +653,7 @@
                 setText('dm-goal-title', 'S계좌 ' + (k.getUTCMonth() + 1) + '월 배당 목표');
                 setText('dm-goal-target', '월 ' + fmt(GOAL, 0) + '원');
                 setText('dm-goal-proj', fmt(c.monthProj, 0) + '원' + (c.monthProj >= GOAL ? ' (달성 예정)' : ''));
-                setText('dm-goal-first', goalMonth ? goalMonth.y + '년 ' + (goalMonth.mo + 1) + '월' : '시트 기간 내 없음');
+                setText('dm-goal-first', goalMonth ? goalMonth.y + '년 ' + (goalMonth.mo + 1) + '월' : '계획 기간 내 없음');
             }
 
             // 상세 창의 "배당 정보" 채우기 (오늘 행 기준, 없으면 마지막 지난 행)
@@ -668,7 +690,7 @@
                 setText('dm-d2', eta(2));
                 setText('dm-d3', eta(3));
                 setText('dm-d-note', slope > 0
-                    ? '일 배당이 하루 약 ' + fmt(slope, 1) + '원씩 늘어나는 속도(추가 1주당 약 ' + fmt(marginal, 2) + '원)로 계산했습니다. 시트의 매수 속도와 1주당 배당이 계속된다고 본 추정입니다.'
+                    ? '일 배당이 하루 약 ' + fmt(slope, 1) + '원씩 늘어나는 속도(추가 1주당 약 ' + fmt(marginal, 2) + '원)로 계산했습니다. 계획의 매수 속도와 1주당 배당이 계속된다고 본 추정입니다.'
                     : '');
                 setText('dm-year', row ? won(row.year) : '-');
 
@@ -752,7 +774,7 @@
                         data: {
                             labels: monLabels,
                             datasets: [
-                                { label: '예상 (시트 일배당 합)', data: monKeys.map(k => Math.round(mons.get(k).exp)), backgroundColor: monKeys.map(k => k > nowKey ? ACCENT + '66' : ACCENT) },
+                                { label: '예상 (계획 일배당 합)', data: monKeys.map(k => Math.round(mons.get(k).exp)), backgroundColor: monKeys.map(k => k > nowKey ? ACCENT + '66' : ACCENT) },
                                 { label: '실제 입금', data: monKeys.map(k => mons.get(k).past ? mons.get(k).last - mons.get(k).base : null), backgroundColor: INK }
                             ]
                         },

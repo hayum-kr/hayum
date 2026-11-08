@@ -1,0 +1,43 @@
+{
+  "_readme": "S계좌 예상 배당 계획. 사이트가 이 파일로 일배당을 계산하고, 구글 시트에서는 일자와 누적실배당(실제 입금)만 읽는다. 날짜는 YYYY-MM-DD.",
+  "start": "2026-11-01",
+  "end": "2028-01-01",
+  "holdings": [
+    { "name": "종목1", "qty0": 9, "perShare": 3 },
+    { "name": "종목2", "qty0": 9, "perShare": 3 },
+    { "name": "종목3", "qty0": 0, "perShare": 1 },
+    { "name": "종목4", "qty0": 0, "perShare": 1 }
+  ],
+  "schedule": [
+    { "from": "2026-11-01", "perWeekday": [1, 1, 2, 2], "memo": "월~금 매일 매수(주). 종목 순서는 holdings와 같다." }
+  ],
+  "events": [],
+
+  "strategy": {
+    "asOf": "2026-11-08",
+    "account": "S계좌 (ISA, 연 납입한도 소진 → 신규 입금 불가, ISA 안의 현금·배당만 재투자 가능)",
+    "dailyBuyWon": 40000,
+    "buyDays": "월~금, 공휴일·12/31 제외",
+    "cashWon": 1600000,
+    "inflows": [
+      { "date": "2026-11-30", "amountWon": 3800000, "memo": "삼성전자 780주 배당(정기 361원 + 특별 4,600원, ISA 입금)" },
+      { "date": "2027-04-30", "amountWon": 280000, "estimate": true, "memo": "삼성전자 정기 배당 추정" },
+      { "date": "2027-05-31", "amountWon": 280000, "estimate": true, "memo": "삼성전자 정기 배당 추정" }
+    ],
+    "assumptions": {
+      "pricePerShareWon": 6700,
+      "dailyDividendPerAddedShareWon": 1.67,
+      "note": "일 4만원 ≈ 6주(= 시트의 하루 매수 수량). 1주 약 6,700원은 역산한 추정치."
+    },
+    "goals": [
+      { "name": "월 1만원", "metric": "S계좌 월 배당" },
+      { "name": "분당 1원", "metric": "일 배당 1,440원", "etaAtCurrentPlan": "2027-05-13경" }
+    ],
+    "runway": "재원 540만원 기준 일 매수 2027-05-26까지, 실배당·삼성전자 4·5월 배당 반영 시 2027-06-22경",
+    "decisions": [
+      "삼성전자는 ISA 보유. 배당 입금 확인 전에는 팔지 않는다(기준일 전 매도 시 배당 소멸).",
+      "11월 말 70만원 선투입은 하지 않는다(일 매수 유지 우선).",
+      "삼성전자 갈아타기는 평가금액·ISA 누적 수익(비과세 한도) 확인 후 일부만 검토."
+    ]
+  }
+}
