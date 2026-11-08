@@ -304,15 +304,12 @@
             <div class="dm-rc-months" id="dm-rc-months"></div>
             <p class="dm-foot" id="dm-rc-msg" hidden>수령 내역을 불러오지 못했습니다.</p>
 
-            <h4 class="dm-sub">월별 실제 배당 합계</h4>
-            <p class="dm-goal-head">S계좌와 A계좌는 규모가 달라 합산하지 않고 따로 표시합니다.</p>
+            <h4 class="dm-sub">월별 실제 배당 합계 (S계좌 + A계좌)</h4>
+            <p class="dm-goal-head" id="dm-mt-total">-</p>
             <dl class="dm-info" id="dm-mt-list"></dl>
 
-            <h4 class="dm-sub">S계좌 월별 실제 배당</h4>
-            <div class="dm-chart"><canvas id="dm-chart-s" aria-label="S계좌 월별 실제 배당 차트" role="img"></canvas></div>
-
-            <h4 class="dm-sub">A계좌 월별 실제 배당</h4>
-            <div class="dm-chart"><canvas id="dm-chart-a" aria-label="A계좌 월별 실제 배당 차트" role="img"></canvas></div>
+            <h4 class="dm-sub">월별 실제 배당 (S계좌 + A계좌)</h4>
+            <div class="dm-chart"><canvas id="dm-chart-m" aria-label="S계좌와 A계좌 월별 실제 배당 합계 차트" role="img"></canvas></div>
             <p class="dm-foot" id="dm-chart-msg" hidden>차트를 불러오지 못했습니다.</p>
 
             <p class="dm-foot">
@@ -574,11 +571,19 @@
                 const list = $('dm-mt-list'); list.textContent = '';
                 const m = monthlyTotals();
                 if (!m) return;
+                const sum = arr => arr.reduce((x, y) => x + y, 0);
+                setText('dm-mt-total', '누적 합계 ' + fmt(sum(m.a) + sum(m.s), 0) + '원 (S계좌 ' + fmt(sum(m.s), 0) + '원 + A계좌 ' + fmt(sum(m.a), 0) + '원)');
                 for (let i = m.labels.length - 1; i >= 0; i--) {          // 최근 달이 위로
                     const row = mk('div', 'dm-row');
-                    row.appendChild(mk('dt', null, '20' + m.labels[i]));
-                    row.appendChild(mk('dd', null, 'S계좌 ' + fmt(m.s[i], 0) + '원 · A계좌 ' + fmt(m.a[i], 0) + '원'));
+                    row.appendChild(mk('dt', null, '20' + m.labels[i] + ' 합계'));
+                    const dd = mk('dd', null, fmt(m.a[i] + m.s[i], 0) + '원');
+                    dd.title = 'S계좌 ' + fmt(m.s[i], 0) + '원 + A계좌 ' + fmt(m.a[i], 0) + '원';
+                    row.appendChild(dd);
                     list.appendChild(row);
+                    const sub = mk('div', 'dm-row');
+                    sub.appendChild(mk('dt', null, '　S계좌 ' + fmt(m.s[i], 0) + '원 · A계좌 ' + fmt(m.a[i], 0) + '원'));
+                    sub.appendChild(mk('dd', null, ''));
+                    list.appendChild(sub);
                 }
             }
             function loadChartJs() {
@@ -598,23 +603,34 @@
                     $('dm-chart-msg').hidden = true;
                     charts.splice(0).forEach(ch => ch.destroy());
                     const ACCENT = '#8a6a3f', INK = '#16130f', INK_SOFT = '#5b554d', LINE = '#e8e4dd';
-                    const make = (id, vals, color) => charts.push(new Chart($(id), {
+                    charts.push(new Chart($('dm-chart-m'), {
                         type: 'bar',
-                        data: { labels: m.labels, datasets: [{ label: '실제 입금', data: vals, backgroundColor: color }] },
+                        data: {
+                            labels: m.labels,
+                            datasets: [
+                                { label: 'A계좌', data: m.a, backgroundColor: INK },
+                                { label: 'S계좌', data: m.s, backgroundColor: ACCENT }
+                            ]
+                        },
                         options: {
                             responsive: true, maintainAspectRatio: false, animation: false,
+                            interaction: { mode: 'index', intersect: false },
                             plugins: {
-                                legend: { display: false },
-                                tooltip: { titleFont: { size: 15 }, bodyFont: { size: 15 }, padding: 10, callbacks: { label: c => ' ' + fmt(c.parsed.y, 0) + '원' } }
+                                legend: { display: true, labels: { boxWidth: 14, color: INK_SOFT, font: { size: 15 } } },
+                                tooltip: {
+                                    titleFont: { size: 15 }, bodyFont: { size: 15 }, footerFont: { size: 15 }, padding: 10,
+                                    callbacks: {
+                                        label: c => ' ' + c.dataset.label + ': ' + fmt(c.parsed.y, 0) + '원',
+                                        footer: items => '합계: ' + fmt(items.reduce((x, it) => x + it.parsed.y, 0), 0) + '원'
+                                    }
+                                }
                             },
                             scales: {
-                                x: { ticks: { maxRotation: 0, color: INK_SOFT, font: { size: 14 } }, grid: { display: false } },
-                                y: { beginAtZero: true, ticks: { maxTicksLimit: 5, color: INK_SOFT, font: { size: 14 }, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE }, afterFit: sc => { sc.width = 70; } }
+                                x: { stacked: true, ticks: { maxRotation: 0, color: INK_SOFT, font: { size: 14 } }, grid: { display: false } },
+                                y: { stacked: true, beginAtZero: true, ticks: { maxTicksLimit: 5, color: INK_SOFT, font: { size: 14 }, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE }, afterFit: sc => { sc.width = 70; } }
                             }
                         }
                     }));
-                    make('dm-chart-s', m.s, ACCENT);
-                    make('dm-chart-a', m.a, INK);
                 }).catch(err => { console.error('차트 오류:', err); $('dm-chart-msg').hidden = false; });
             }
 
