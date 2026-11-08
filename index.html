@@ -532,18 +532,12 @@
                 const m = monthlyTotals();
                 if (!m) return;
                 const sum = arr => arr.reduce((x, y) => x + y, 0);
-                setText('dm-mt-total', '누적 합계 ' + fmt(sum(m.a) + sum(m.s), 0) + '원 (S계좌 ' + fmt(sum(m.s), 0) + '원 + A계좌 ' + fmt(sum(m.a), 0) + '원)');
+                setText('dm-mt-total', '누적 합계 ' + fmt(sum(m.a) + sum(m.s), 0) + '원');
                 for (let i = m.labels.length - 1; i >= 0; i--) {          // 최근 달이 위로
                     const row = mk('div', 'dm-row');
                     row.appendChild(mk('dt', null, '20' + m.labels[i] + ' 합계'));
-                    const dd = mk('dd', null, fmt(m.a[i] + m.s[i], 0) + '원');
-                    dd.title = 'S계좌 ' + fmt(m.s[i], 0) + '원 + A계좌 ' + fmt(m.a[i], 0) + '원';
-                    row.appendChild(dd);
+                    row.appendChild(mk('dd', null, fmt(m.a[i] + m.s[i], 0) + '원'));
                     list.appendChild(row);
-                    const sub = mk('div', 'dm-row');
-                    sub.appendChild(mk('dt', null, '　S계좌 ' + fmt(m.s[i], 0) + '원 · A계좌 ' + fmt(m.a[i], 0) + '원'));
-                    sub.appendChild(mk('dd', null, ''));
-                    list.appendChild(sub);
                 }
             }
             function loadChartJs() {
