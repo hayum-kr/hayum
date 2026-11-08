@@ -130,47 +130,11 @@
             </div>
         </section>
 
-        <!-- ===== Dividend ===== -->
-        <section class="section" id="dividend-section">
-            <div class="section-grid">
-                <div class="section-head reveal">
-                    <span class="section-index">05</span>
-                    <h2 class="section-title">Dividend</h2>
-                </div>
-                <div class="section-body reveal">
-                    <!-- Dividend live panel -->
-                    <div class="dividend" id="dividend" role="button" tabindex="0" aria-label="배당 현황 상세 보기">
-                        <div class="dividend-head">
-                            <span class="dividend-title">배당 현황</span>
-                            <span class="dividend-asof" id="div-asof">불러오는 중…</span>
-                            <button type="button" class="dividend-refresh" id="div-refresh" title="새로고침" aria-label="새로고침"><span class="dividend-refresh-icon">🔄</span></button>
-                        </div>
-                        <div class="dividend-grid">
-                            <div class="dividend-cell">
-                                <span class="dividend-label">오늘 예상배당</span>
-                                <span class="dividend-value"><span id="div-today">-</span><em>원</em></span>
-                            </div>
-                            <div class="dividend-cell">
-                                <span class="dividend-label">예상배당 (누적)</span>
-                                <span class="dividend-value"><span id="div-expected">-</span><em>원</em></span>
-                            </div>
-                            <div class="dividend-cell">
-                                <span class="dividend-label">실배당 (누적)</span>
-                                <span class="dividend-value"><span id="div-actual">-</span><em>원</em></span>
-                            </div>
-                        </div>
-                        <p class="dividend-note" id="div-note"></p>
-                        <p class="dividend-more">차트·상세 보기 →</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- ===== History ===== -->
         <section class="section" id="history">
             <div class="section-grid">
                 <div class="section-head reveal">
-                    <span class="section-index">06</span>
+                    <span class="section-index">05</span>
                     <h2 class="section-title">History</h2>
                 </div>
                 <div class="section-body reveal">
@@ -201,7 +165,7 @@
     <footer id="contact">
         <div class="footer-inner">
             <div class="footer-brand reveal">
-                <span class="footer-logo">HAYUM</span>
+                <span class="footer-logo" id="dividend" role="button" tabindex="0" aria-label="배당 현황 상세 보기">HAYUM</span>
                 <p class="footer-tagline">Thoughtful Growth,<br>Enduring Brightness</p>
             </div>
             <div class="footer-info reveal">
@@ -472,8 +436,6 @@
             function load() {
                 if (loading) return;
                 loading = true;
-                const btn = $('div-refresh');
-                btn.disabled = true; btn.classList.add('loading');
                 const getJson = u => fetch(u, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
                         // 수령 내역 실패는 해당 섹션만 안내하고, S계좌 실배당은 0으로 둔다
                 const rc = fetchReceipts().catch(err => { console.error('수령 내역 오류:', err); return null; });
@@ -491,10 +453,10 @@
                     })
                     .catch(err => {
                         console.error('배당 데이터 오류:', err);
-                        if (!data) setText('div-asof', '데이터를 불러오지 못했습니다');
-                        else setText('div-note', $('div-note').textContent + ' · 갱신 실패(이전 데이터 표시 중)');
+                        if (!data) setText('dm-asof', '데이터를 불러오지 못했습니다');
+                        else setText('dm-persec', $('dm-persec').textContent + ' · 갱신 실패(이전 데이터 표시 중)');
                     })
-                    .finally(() => { loading = false; btn.disabled = false; btn.classList.remove('loading'); });
+                    .finally(() => { loading = false; });
             }
 
             // 오늘 기준 계산값
@@ -516,20 +478,18 @@
                 if (!data) return;
                 const c = calc();
                 const exp4 = fmt(c.expected, 4), today4 = fmt(c.todayAmt, 4), act0 = fmt(c.actual, 0);
-                setText('div-expected', exp4); setText('dm-expected', exp4);
-                setText('div-today', today4);  setText('dm-today', today4);
-                setText('div-actual', act0);   setText('dm-actual', act0);
+                setText('dm-expected', exp4);
+                setText('dm-today', today4);
+                setText('dm-actual', act0);
 
                 const note = c.today
                     ? '오늘 예상 일배당 ' + fmt(c.today.daily, 0) + '원 · 초당 약 ' + fmt(c.today.daily / 86400, 5) + '원씩 증가'
                     : '';
-                setText('div-note', note);
                 setText('dm-persec', note);
 
                 const k = new Date(Date.now() + KST);
                 const asof = k.getUTCFullYear() + '. ' + String(k.getUTCMonth() + 1).padStart(2, '0') + '. ' + String(k.getUTCDate()).padStart(2, '0') + ' 기준'
                     + (lastLoaded ? ' · 시트 갱신 ' + hms(lastLoaded) : '');
-                setText('div-asof', asof);
                 setText('dm-asof', asof);
 
             }
@@ -641,6 +601,7 @@
                 document.body.style.overflow = 'hidden';
                 if (data) { fillInfo(); tick(); }
                 renderCharts();
+                load();                         // 열 때 최신 데이터로 갱신
                 $('dm-box').focus({ preventScroll: true });
             }
             function closeDividend() {
@@ -660,14 +621,9 @@
             modal.addEventListener('click', e => { if (e.target === modal) closeDividend(); });
             window.addEventListener('keydown', e => { if (e.key === 'Escape' && isModalOpen()) closeDividend(); });
 
-            $('div-refresh').addEventListener('click', e => { e.stopPropagation(); load(); });
-            load();
-            setInterval(tick, 1000);
-            setInterval(() => { if (!document.hidden) load(); }, REFRESH_MS);
-            // 탭으로 돌아왔을 때 마지막 갱신이 오래됐으면 바로 갱신
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden && lastLoaded && Date.now() - lastLoaded > REFRESH_MS) load();
-            });
+            // 상세 창이 열려 있을 때만 갱신한다 (열 때 openDividend에서 즉시 load)
+            setInterval(() => { if (isModalOpen()) tick(); }, 1000);
+            setInterval(() => { if (isModalOpen() && !document.hidden) load(); }, REFRESH_MS);
         })();
 
         // ===== Scroll reveal =====
