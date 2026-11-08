@@ -10,12 +10,13 @@ To preview locally: `python -m http.server` in the repo root (needed because of 
 
 ## Architecture
 
-- `index.html` is a single page holding all sections (Philosophy … Contact, Notice, Dividend) plus all JS inline in one `<script>` block at the bottom. No frameworks; Chart.js is lazy-loaded (`loadChartJs`) only when the dividend popup opens.
-- **Dividend section (05)** is a self-contained IIFE in `index.html` that fetches public Google Sheet CSV via the gviz endpoint (`.../gviz/tq?tqx=out:csv&sheet=<name>` or `&gid=`), refreshes every 60s, and ticks counters every second (KST-based). Clicking the panel opens a detail popup (bottom sheet on mobile).
-  - **S계좌** = sheet tab `ISA-일배당` (daily expected dividend + manually entered actual). Columns are located by header name (`일자`, `일배당`, `누적실배당`, `포트폴수량`, `월배당`).
-  - **A계좌** = sheet tab `배당내역` (gid 1679568385), only rows with `배당금`>0; loaded by `loadReceipts()`. Scale is ~100x S계좌, so the two are **never summed**.
+- `index.html` is a single page holding all sections (Philosophy … Contact, Notice, Dividend) plus all JS inline in one `<script>` block at the bottom. No frameworks. (Dividend charts were removed pending review; recover `renderCharts`/`loadChartJs` from git history, commit 506c3c9 or earlier.)
+- **Dividend section (05)** is a self-contained IIFE in `index.html`. Forecasts come from `data/plan.json` (holdings, per-weekday buy schedule, extra-buy events; `buildSeries` generates the daily series). Actual dividends come from one public Google Sheet tab, `배당내역` (gid 1679568385), fetched via the gviz CSV endpoint (`.../gviz/tq?tqx=out:csv&gid=`), refreshed every 60s; counters tick every second (KST-based). Clicking the panel opens a detail popup (bottom sheet on mobile).
+  - `배당내역` columns are located by header name: `입금일자`, `종목명`, `배당금`, `배당계좌`. Rows with `배당금`>0 only. `배당계좌` = `A계좌` or `S계좌` (missing/other → A계좌). `fetchReceipts()` splits them: S rows feed the S계좌 actual (cumulative) and the S receipts section; A rows feed the A receipts section.
+  - Scale of A계좌 is ~100x S계좌, so the two are **never summed**.
+  - `data/plan.json` is public; its `strategy` block is notes only (not read by the page).
   - UI text uses only "S계좌"/"A계좌" labels.
-- Gotcha: gviz returns the first tab (Dashboard) with no error if the sheet name doesn't exist. If a tab is renamed, update `SHEET_NAME` in `index.html`.
+- Gotcha: gviz returns the first tab (Dashboard) with no error if a sheet *name* doesn't exist, so the page uses `gid`. If the `배당내역` tab is deleted/recreated, update the gid in `RC_URL`.
 - Sheet is public; making it private breaks the Dividend section.
 
 ## Conventions

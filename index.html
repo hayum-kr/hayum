@@ -281,6 +281,17 @@
                 <div class="dm-row"><dt>연간 (현재 수량 유지 시)</dt><dd id="dm-year">-</dd></div>
             </dl>
 
+            <h4 class="dm-sub">S계좌 · 실제 배당 수령 내역</h4>
+            <p class="dm-goal-head" id="dm-sc-range">실제 입금 기준</p>
+            <dl class="dm-info">
+                <div class="dm-row"><dt>누적 수령액</dt><dd id="dm-sc-total">-</dd></div>
+                <div class="dm-row"><dt>이번 달 수령액</dt><dd id="dm-sc-month">-</dd></div>
+                <div class="dm-row"><dt>최근 입금</dt><dd id="dm-sc-last">-</dd></div>
+                <div class="dm-row"><dt>입금 횟수</dt><dd id="dm-sc-count">-</dd></div>
+            </dl>
+            <div class="dm-rc-months" id="dm-sc-months"></div>
+            <p class="dm-foot" id="dm-sc-msg" hidden>수령 내역이 아직 없거나 불러오지 못했습니다.</p>
+
             <h4 class="dm-sub">A계좌 · 실제 배당 수령 내역</h4>
             <p class="dm-goal-head" id="dm-rc-range">실제 입금 기준</p>
             <p class="dm-goal-head">S계좌와 별개 계좌입니다. 배당 받을 때마다 재투자하는 계좌의 실제 입금 이력입니다.</p>
@@ -293,21 +304,11 @@
             <div class="dm-rc-months" id="dm-rc-months"></div>
             <p class="dm-foot" id="dm-rc-msg" hidden>수령 내역을 불러오지 못했습니다.</p>
 
-            <h4 class="dm-sub">S계좌 월별 배당 · 예상 vs 실제</h4>
-            <div class="dm-chart"><canvas id="dm-chart-mon" aria-label="S계좌 월별 예상과 실제 배당 차트" role="img"></canvas></div>
-
-            <h4 class="dm-sub">S계좌 누적 배당 추이</h4>
-            <div class="dm-chart"><canvas id="dm-chart-cum" aria-label="누적 배당 추이 차트" role="img"></canvas></div>
-
-            <h4 class="dm-sub">S계좌 일별 예상 배당</h4>
-            <div class="dm-chart"><canvas id="dm-chart-day" aria-label="일별 예상 배당 차트" role="img"></canvas></div>
-            <p class="dm-foot" id="dm-chart-msg" hidden>차트를 불러오지 못했습니다.</p>
-
             <p class="dm-foot">
                 일배당은 보유 수량 × 1주당 배당으로 계산한 하루치 예상 배당입니다.
                 초 단위로 늘어나는 숫자는 하루치를 24시간에 균등하게 나눈 환산값이며, 실제 입금은 입금일에 실배당으로 반영됩니다.
                 예상은 계획(일배당), 실제는 입금된 실배당 기준입니다.
-                차트의 점선·옅은 막대는 미래 예상치이고, 모든 값은 예상이므로 실제와 다를 수 있습니다.
+                모든 값은 예상이므로 실제와 다를 수 있습니다.
             </p>
         </div>
     </div>
@@ -345,7 +346,6 @@
         (function () {
             const SHEET_ID = '15JOMe2aw_4OFUDklv3xyUnRJqbZlkcnOgkJUTh_ETzc';
             const PLAN_URL = 'data/plan.json';
-            const CHART_JS ='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
             const $ = id => document.getElementById(id);
             const setText = (id, v) => { $(id).textContent = v; };
 
@@ -373,7 +373,6 @@
             let data = null;                    // 시트에서 읽은 일자별 데이터
             let lastLoaded = null;
             let loading = false;
-            const charts = [];
             const modal = $('dividendModal');
             const isModalOpen = () => modal.classList.contains('active');
 
@@ -426,11 +425,12 @@
                             .sort((a, b) => a.t - b.t);
                         const a = all.filter(x => x.acc !== 'S계좌');
                         let cum = 0;
-                        const s = all.filter(x => x.acc === 'S계좌').map(x => ({ t: x.t, actual: (cum += x.amt) }));   // S계좌 누적 실배당
-                        return { a, s };
+                        const si = all.filter(x => x.acc === 'S계좌');
+                        const s = si.map(x => ({ t: x.t, actual: (cum += x.amt) }));   // S계좌 누적 실배당
+                        return { a, s, si };
                     });
             }
-            function renderReceipts(items) {
+            function renderReceipts(items, p) {
                 const dstr = t => { const d = new Date(t); return d.getUTCFullYear() + '.' + String(d.getUTCMonth() + 1).padStart(2, '0') + '.' + String(d.getUTCDate()).padStart(2, '0'); };
                 const mkey = t => { const d = new Date(t); return d.getUTCFullYear() * 12 + d.getUTCMonth(); };
                 const total = items.reduce((s, x) => s + x.amt, 0);
@@ -438,13 +438,13 @@
                 const nowKey = mkey(kstDayStart());
                 const sums = new Map();
                 for (const x of items) sums.set(mkey(x.t), (sums.get(mkey(x.t)) || 0) + x.amt);
-                setText('dm-rc-total', fmt(total, 0) + '원');
-                setText('dm-rc-month', fmt(sums.get(nowKey) || 0, 0) + '원');
-                setText('dm-rc-last', dstr(last.t) + ' · ' + fmt(last.amt, 0) + '원');
-                setText('dm-rc-count', items.length + '건');
-                setText('dm-rc-range', dstr(first.t) + ' ~ ' + dstr(last.t) + ' · 실제 입금 기준');
+                setText(p + '-total', fmt(total, 0) + '원');
+                setText(p + '-month', fmt(sums.get(nowKey) || 0, 0) + '원');
+                setText(p + '-last', dstr(last.t) + ' · ' + fmt(last.amt, 0) + '원');
+                setText(p + '-count', items.length + '건');
+                setText(p + '-range', dstr(first.t) + ' ~ ' + dstr(last.t) + ' · 실제 입금 기준');
 
-                const monthsEl = $('dm-rc-months'); monthsEl.textContent = '';
+                const monthsEl = $(p + '-months'); monthsEl.textContent = '';
                 const startKey = mkey(first.t), endKey = Math.max(mkey(last.t), nowKey);
                 let max = 0; for (const v of sums.values()) max = Math.max(max, v);
                 for (let k = startKey; k <= endKey; k++) {
@@ -468,12 +468,12 @@
                 const rc = fetchReceipts().catch(err => { console.error('수령 내역 오류:', err); return null; });
                 Promise.all([getJson(PLAN_URL), rc])
                     .then(([plan, r]) => {
-                        if (r && r.a.length) { renderReceipts(r.a); $('dm-rc-msg').hidden = true; } else $('dm-rc-msg').hidden = false;
+                        if (r && r.a.length) { renderReceipts(r.a, 'dm-rc'); $('dm-rc-msg').hidden = true; } else $('dm-rc-msg').hidden = false;
+                        if (r && r.si.length) { renderReceipts(r.si, 'dm-sc'); $('dm-sc-msg').hidden = true; } else $('dm-sc-msg').hidden = false;
                         data = buildSeries(plan, r ? r.s : []);
                         lastLoaded = new Date();
                         fillInfo();
                         tick();
-                        if (isModalOpen()) renderCharts();
                     })
                     .catch(err => {
                         console.error('배당 데이터 오류:', err);
@@ -536,128 +536,12 @@
 
             }
 
-            // ----- 차트 (Chart.js, 상세 창을 열 때 지연 로드) -----
-            function loadChartJs() {
-                if (window.Chart) return Promise.resolve();
-                return new Promise((resolve, reject) => {
-                    const s = document.createElement('script');
-                    s.src = CHART_JS;
-                    s.onload = resolve;
-                    s.onerror = () => reject(new Error('Chart.js 로드 실패'));
-                    document.head.appendChild(s);
-                });
-            }
-
-            function renderCharts() {
-                if (!data) return;
-                loadChartJs().then(() => {
-                    $('dm-chart-msg').hidden = true;
-                    charts.splice(0).forEach(ch => ch.destroy());
-
-                    const ACCENT = '#8a6a3f', ACCENT_DK = '#6b4f2e', INK = '#16130f', INK_SOFT = '#5b554d', LINE = '#e8e4dd';
-                    const todayStart = kstDayStart();
-                    let todayIdx = -1;
-                    data.forEach((d, i) => { if (d.t <= todayStart) todayIdx = i; });
-
-                    const pad = v => String(v).padStart(2, '0');
-                    const labels = data.map(d => { const k = new Date(d.t); return pad(k.getUTCFullYear() % 100) + '.' + pad(k.getUTCMonth() + 1) + '.' + pad(k.getUTCDate()); });
-                    let sum = 0;
-                    const cum = data.map(d => (sum += d.daily));       // 각 일자 종료 시점의 누적
-
-                    const opts = legend => ({
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: false,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: {
-                            legend: { display: legend, labels: { boxWidth: 14, color: INK_SOFT, font: { size: 15 } } },
-                            tooltip: {
-                                titleFont: { size: 15 }, bodyFont: { size: 15 }, padding: 10,
-                                callbacks: { label: c => ' ' + c.dataset.label + ': ' + fmt(c.parsed.y, 0) + '원' }
-                            }
-                        },
-                        scales: {
-                            x: { ticks: { maxTicksLimit: 4, maxRotation: 0, color: INK_SOFT, font: { size: 14 } }, grid: { display: false } },
-                            // y축 폭을 고정해서 두 차트의 가로 축이 서로 맞도록 함
-                            y: { beginAtZero: true, ticks: { maxTicksLimit: 5, color: INK_SOFT, font: { size: 14 }, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE }, afterFit: s => { s.width = 70; } }
-                        }
-                    });
-
-                    // 월별: 예측(일배당 합) vs 실제(누적실배당의 월 증가분)
-                    const mons = new Map();
-                    let prevAct = 0;
-                    const monKeys = [];
-                    for (const d of data) {
-                        const k = new Date(d.t), key = k.getUTCFullYear() * 12 + k.getUTCMonth();
-                        if (!mons.has(key)) { mons.set(key, { exp: 0, base: prevAct, last: prevAct, past: false }); monKeys.push(key); }
-                        const m = mons.get(key);
-                        m.exp += d.daily; m.last = d.actual; prevAct = d.actual;
-                        if (d.t <= todayStart) m.past = true;
-                    }
-                    const monLabels = monKeys.map(k => pad(Math.floor(k / 12) % 100) + '.' + pad(k % 12 + 1));
-                    const nowKey = new Date(todayStart).getUTCFullYear() * 12 + new Date(todayStart).getUTCMonth();
-                    charts.push(new Chart($('dm-chart-mon'), {
-                        type: 'bar',
-                        data: {
-                            labels: monLabels,
-                            datasets: [
-                                { label: '예상 (계획 일배당 합)', data: monKeys.map(k => Math.round(mons.get(k).exp)), backgroundColor: monKeys.map(k => k > nowKey ? ACCENT + '66' : ACCENT) },
-                                { label: '실제 입금', data: monKeys.map(k => mons.get(k).past ? mons.get(k).last - mons.get(k).base : null), backgroundColor: INK }
-                            ]
-                        },
-                        options: opts(true)
-                    }));
-
-                    charts.push(new Chart($('dm-chart-cum'), {
-                        type: 'line',
-                        data: {
-                            labels,
-                            datasets: [
-                                {
-                                    label: '예상 누적배당',
-                                    data: cum,
-                                    borderColor: ACCENT, backgroundColor: ACCENT + '1a', fill: true,
-                                    borderWidth: 2, tension: 0.2,
-                                    pointRadius: c => c.dataIndex === todayIdx ? 5 : 0,
-                                    pointBackgroundColor: ACCENT_DK,
-                                    segment: { borderDash: c => c.p0DataIndex >= todayIdx ? [5, 4] : undefined }
-                                },
-                                {
-                                    label: '실배당 누적',
-                                    data: data.map((d, i) => i <= todayIdx ? d.actual : null),
-                                    borderColor: INK, backgroundColor: INK, fill: false,
-                                    borderWidth: 2, stepped: true, pointRadius: 0
-                                }
-                            ]
-                        },
-                        options: opts(true)
-                    }));
-
-                    charts.push(new Chart($('dm-chart-day'), {
-                        type: 'bar',
-                        data: {
-                            labels,
-                            datasets: [{
-                                label: '일 예상배당',
-                                data: data.map(d => d.daily),
-                                backgroundColor: c => c.dataIndex === todayIdx ? ACCENT_DK : (c.dataIndex < todayIdx ? ACCENT : ACCENT + '55'),
-                                barPercentage: 1, categoryPercentage: 1
-                            }]
-                        },
-                        options: opts(false)
-                    }));
-                }).catch(err => {
-                    console.error('차트 오류:', err);
-                    $('dm-chart-msg').hidden = false;
-                });
-            }
-
             // ----- 상세 창 열기/닫기 -----
             function openDividend() {
                 modal.classList.add('active');
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.style.overflow = 'hidden';
-                if (data) { fillInfo(); tick(); renderCharts(); }
+                if (data) { fillInfo(); tick(); }
                 $('dm-box').focus({ preventScroll: true });
             }
             function closeDividend() {
