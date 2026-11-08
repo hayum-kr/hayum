@@ -20,10 +20,15 @@
     "buyDays": "월~금, 공휴일·12/31 제외",
     "cashWon": 1600000,
     "inflows": [
-      { "date": "2026-11-30", "amountWon": 3800000, "memo": "삼성전자 780주 배당(정기 361원 + 특별 4,600원, ISA 입금)" },
+      { "date": "2026-11-30", "amountWon": 3800000, "memo": "삼성전자 780주 배당(정기 361원 + 특별 4,600원, ISA 입금). 월말 입금 예정" },
       { "date": "2027-04-30", "amountWon": 280000, "estimate": true, "memo": "삼성전자 정기 배당 추정" },
       { "date": "2027-05-31", "amountWon": 280000, "estimate": true, "memo": "삼성전자 정기 배당 추정" }
     ],
+    "etfPayout": {
+      "cycle": "월배당 ETF, 격주(월 2회): 월초(2~5일경) · 월중(17~20일경)",
+      "nextExpected": "2026-11-17 또는 11-18",
+      "note": "A계좌·S계좌 모두 이 ETF를 모으는 중. 최근 월중 입금(코배당) 약 25~29만원(A계좌)."
+    },
     "assumptions": {
       "pricePerShareWon": 6700,
       "dailyDividendPerAddedShareWon": 1.67,
