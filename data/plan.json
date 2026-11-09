@@ -3,10 +3,10 @@
   "start": "2026-11-01",
   "end": "2028-01-01",
   "holdings": [
-    { "name": "종목1", "qty0": 9, "perShare": 3 },
-    { "name": "종목2", "qty0": 9, "perShare": 3 },
-    { "name": "종목3", "qty0": 0, "perShare": 1 },
-    { "name": "종목4", "qty0": 0, "perShare": 1 }
+    { "name": "A", "full": "타이거미국S&P500타겟커버드콜(타피켓)", "qty0": 9, "perShare": 3.3333 },
+    { "name": "B", "full": "타이거미국나스닥100타겟커버드콜(타나켓)", "qty0": 9, "perShare": 3.3333 },
+    { "name": "C", "full": "타이거리치부동산인프라(타동산)", "qty0": 0, "perShare": 1.1 },
+    { "name": "D", "full": "코덱스한국부동산인프라(코동산)", "qty0": 0, "perShare": 1.1 }
   ],
   "schedule": [
     { "from": "2026-11-01", "perWeekday": [1, 1, 2, 2], "memo": "월~금 매일 매수(주). 종목 순서는 holdings와 같다." }
@@ -24,6 +24,14 @@
       { "date": "2027-04-30", "amountWon": 280000, "estimate": true, "memo": "삼성전자 정기 배당 추정" },
       { "date": "2027-05-31", "amountWon": 280000, "estimate": true, "memo": "삼성전자 정기 배당 추정" }
     ],
+    "aAccountHoldings": {
+      "asOf": "2026-11-09",
+      "items": [
+        { "code": "0144L0", "qty": 3000 },
+        { "code": "441640", "qty": 3211 }
+      ],
+      "note": "A계좌 보유 수량(사용자 제공). 페이지는 읽지 않는 메모."
+    },
     "etfPayout": {
       "cycle": "월배당 ETF, 격주(월 2회): 월초(2~5일경) · 월중(17~20일경)",
       "nextExpected": "2026-11-17 또는 11-18",
