@@ -235,6 +235,10 @@
             </div>
             <p class="dm-persec" id="dm-persec"></p>
 
+            <h4 class="dm-sub">S계좌 예상 배당 (누적) · 일별</h4>
+            <div class="dm-chart"><canvas id="dm-chart-c" aria-label="S계좌 예상 배당 누적 일별 차트. 오늘 막대는 매초 늘어납니다" role="img"></canvas></div>
+            <p class="dm-foot" id="dm-cum-note"></p>
+
             <h4 class="dm-sub">S계좌 배당 정보</h4>
             <dl class="dm-info">
                 <div class="dm-row"><dt>보유 수량 (합계)</dt><dd id="dm-qty">-</dd></div>
@@ -347,6 +351,7 @@
             let lastLoaded = null;
             let loading = false;
             const charts = [];
+            let cumChart = null, cumDay = 0;   // 누적 차트와 그 차트가 만들어진 날(KST 자정)
             let receipts = null;                // 마지막으로 읽은 수령 내역 { a, si }
             const modal = $('dividendModal');
             const isModalOpen = () => modal.classList.contains('active');
@@ -445,8 +450,8 @@
                         if (r && r.si.length) { renderReceipts(r.si, 'dm-sc'); $('dm-sc-msg').hidden = true; } else $('dm-sc-msg').hidden = false;
                         receipts = r;
                         renderMonthly();
-                        if (isModalOpen()) renderCharts();
                         data = buildSeries(plan, r ? r.s : []);
+                        if (isModalOpen()) renderCharts();
                         lastLoaded = new Date();
                         fillInfo();
                         tick();
@@ -492,6 +497,15 @@
                     + (lastLoaded ? ' · 시트 갱신 ' + hms(lastLoaded) : '');
                 setText('dm-asof', asof);
 
+                if (cumChart) {
+                    if (cumDay !== kstDayStart()) renderCharts();      // 날짜가 바뀌면 다시 그린다
+                    else {
+                        const v = cumChart.data.datasets[0].data;
+                        v[v.length - 1] = c.expected;
+                        cumChart.update('none');
+                        setText('dm-cum-note', '오늘 ' + fmt(c.todayAmt, 4) + '원 · 누적 ' + fmt(c.expected, 4) + '원 (오늘 막대는 매초 늘어납니다)');
+                    }
+                }
             }
 
             // 상세 창의 "배당 정보" 채우기 (오늘 행 기준, 없으면 마지막 지난 행)
@@ -550,14 +564,51 @@
                     document.head.appendChild(sc);
                 });
             }
+            // 11/1 ~ 오늘의 일별 예상 배당 누적 (오늘 값은 현재 시각까지)
+            function cumSeries() {
+                const ts = kstDayStart(), frac = ((Date.now() + KST) - ts) / DAY;
+                const labels = [], vals = [];
+                let cum = 0;
+                for (const d of data) {
+                    if (d.t > ts) break;
+                    cum += d.t === ts ? d.daily * frac : d.daily;
+                    const k = new Date(d.t);
+                    labels.push((k.getUTCMonth() + 1) + '/' + k.getUTCDate());
+                    vals.push(cum);
+                }
+                return { labels, vals };
+            }
             function renderCharts() {
                 const m = monthlyTotals();
-                if (!m) return;
+                if (!m && !data) return;
                 loadChartJs().then(() => {
                     $('dm-chart-msg').hidden = true;
                     charts.splice(0).forEach(ch => ch.destroy());
+                    cumChart = null;
                     const ACCENT = '#8a6a3f', INK = '#16130f', INK_SOFT = '#5b554d', LINE = '#e8e4dd';
-                    charts.push(new Chart($('dm-chart-m'), {
+                    if (data) {
+                        const cs = cumSeries();
+                        if (cs.vals.length) {
+                            cumDay = kstDayStart();
+                            cumChart = new Chart($('dm-chart-c'), {
+                                type: 'bar',
+                                data: { labels: cs.labels, datasets: [{ label: 'S계좌 예상 배당 (누적)', data: cs.vals, backgroundColor: cs.vals.map((_, i) => i === cs.vals.length - 1 ? INK : ACCENT) }] },
+                                options: {
+                                    responsive: true, maintainAspectRatio: false, animation: false,
+                                    plugins: {
+                                        legend: { display: false },
+                                        tooltip: { titleFont: { size: 15 }, bodyFont: { size: 15 }, padding: 10, callbacks: { label: c => ' 누적 ' + fmt(c.parsed.y, 2) + '원' } }
+                                    },
+                                    scales: {
+                                        x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, color: INK_SOFT, font: { size: 14 } }, grid: { display: false } },
+                                        y: { beginAtZero: true, ticks: { maxTicksLimit: 5, color: INK_SOFT, font: { size: 14 }, callback: v => v.toLocaleString('ko-KR') }, grid: { color: LINE }, afterFit: sc => { sc.width = 70; } }
+                                    }
+                                }
+                            });
+                            charts.push(cumChart);
+                        }
+                    }
+                    if (m) charts.push(new Chart($('dm-chart-m'), {
                         type: 'bar',
                         data: {
                             labels: m.labels,
