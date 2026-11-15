@@ -284,6 +284,7 @@
                 일배당은 보유 수량 × 1주당 배당으로 계산한 하루치 예상 배당입니다.
                 초 단위로 늘어나는 숫자는 하루치를 24시간에 균등하게 나눈 환산값이며, 실제 입금은 입금일에 실배당으로 반영됩니다.
                 예상은 계획(일배당), 실제는 입금된 실배당 기준입니다.
+                2026년 6월 입금은 보기 좋게 7월에 합산해 표시합니다.
                 모든 값은 예상이므로 실제와 다를 수 있습니다.
             </p>
         </div>
@@ -358,6 +359,8 @@
 
             // 오늘(KST)의 자정 기준 UTC 타임스탬프
             const kstDayStart = () => { const n = Date.now() + KST; return n - (n % DAY); };
+            // 월별 집계 키 (2026년 6월 입금은 보기 좋게 7월에 합산)
+            const monthKey = t => { const d = new Date(t), k = d.getUTCFullYear() * 12 + d.getUTCMonth(); return k === 2026 * 12 + 5 ? k + 1 : k; };
             const hms = d => { const k = new Date(d.getTime() + KST); return [k.getUTCHours(), k.getUTCMinutes(), k.getUTCSeconds()].map(v => String(v).padStart(2, '0')).join(':'); };
 
             // ===== 계획(data/plan.json)으로 일자별 예상 배당 생성 =====
@@ -412,7 +415,7 @@
             }
             function renderReceipts(items, p) {
                 const dstr = t => { const d = new Date(t); return d.getUTCFullYear() + '.' + String(d.getUTCMonth() + 1).padStart(2, '0') + '.' + String(d.getUTCDate()).padStart(2, '0'); };
-                const mkey = t => { const d = new Date(t); return d.getUTCFullYear() * 12 + d.getUTCMonth(); };
+                const mkey = monthKey;
                 const total = items.reduce((s, x) => s + x.amt, 0);
                 const last = items[items.length - 1], first = items[0];
                 const nowKey = mkey(kstDayStart());
@@ -527,7 +530,7 @@
             // ===== 월별 실제 배당 합계 (S계좌 / A계좌 따로) + 차트 =====
             function monthlyTotals() {
                 if (!receipts) return null;
-                const mkey = t => { const d = new Date(t); return d.getUTCFullYear() * 12 + d.getUTCMonth(); };
+                const mkey = monthKey;
                 const all = receipts.a.concat(receipts.si);
                 if (!all.length) return null;
                 const sumBy = items => { const m = new Map(); for (const x of items) m.set(mkey(x.t), (m.get(mkey(x.t)) || 0) + x.amt); return m; };
