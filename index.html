@@ -430,7 +430,7 @@
                 const monthsEl = $(p + '-months'); monthsEl.textContent = '';
                 const startKey = mkey(first.t), endKey = Math.max(mkey(last.t), nowKey);
                 let max = 0; for (const v of sums.values()) max = Math.max(max, v);
-                for (let k = startKey; k <= endKey; k++) {
+                for (let k = endKey; k >= startKey; k--) {                 // 최근 달이 위로
                     const v = sums.get(k) || 0;
                     const row = mk('div', 'dm-rc-m');
                     row.appendChild(mk('span', 'dm-rc-mlabel', Math.floor(k / 12) + '.' + String(k % 12 + 1).padStart(2, '0')));
@@ -614,10 +614,10 @@
                     if (m) charts.push(new Chart($('dm-chart-m'), {
                         type: 'bar',
                         data: {
-                            labels: m.labels,
+                            labels: m.labels.slice().reverse(),                 // 최근 달이 왼쪽
                             datasets: [
-                                { label: 'A계좌', data: m.a, backgroundColor: INK },
-                                { label: 'S계좌', data: m.s, backgroundColor: ACCENT }
+                                { label: 'A계좌', data: m.a.slice().reverse(), backgroundColor: INK },
+                                { label: 'S계좌', data: m.s.slice().reverse(), backgroundColor: ACCENT }
                             ]
                         },
                         options: {
